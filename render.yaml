@@ -1,0 +1,39 @@
+{
+  "name": "storytime-app",
+  "description": "Child-friendly storytelling app with bilingual TTS",
+  "buildCommand": "cd backend && npm install && cd ../frontend && npm install && npm run build",
+  "startCommand": "cd backend && node server.js",
+  "env": [
+    {
+      "key": "NODE_ENV",
+      "value": "production"
+    },
+    {
+      "key": "GROQ_API_KEY",
+      "value": ""
+    },
+    {
+      "key": "MONGODB_URI",
+      "value": ""
+    }
+  ],
+  "services": [
+    {
+      "type": "web",
+      "name": "storytime-app",
+      "runtime": "node",
+      "buildCommand": "cd backend && npm install && cd ../frontend && npm install && npm run build",
+      "startCommand": "cd backend && node server.js",
+      "envVars": [
+        {
+          "key": "NODE_ENV",
+          "value": "production"
+        },
+        {
+          "key": "PORT",
+          "value": "10000"
+        }
+      ]
+    }
+  ]
+}
