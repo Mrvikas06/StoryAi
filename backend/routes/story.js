@@ -55,10 +55,13 @@ function parseStory(raw) {
 // ── Generate from words ──────────────────────────────
 router.post('/generate', async (req, res) => {
   const { words, childId = 'guest' } = req.body;
+  console.log('📝 Story request:', { words, childId });
+  
   if (!words || !words.length)
     return res.status(400).json({ error: 'No words provided' });
 
   try {
+    console.log('🤖 Calling Groq API...');
     const completion = await client.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       max_tokens: 1024,
@@ -76,12 +79,15 @@ router.post('/generate', async (req, res) => {
     });
 
     const raw    = completion.choices[0].message.content;
+    console.log('📖 Story generated, parsing...');
     const parsed = parseStory(raw);
+    console.log('💾 Saving to database...');
     const story  = await Story.create({ ...parsed, words, childId });
+    console.log('✅ Story saved successfully:', story._id);
     res.json({ success: true, story });
 
   } catch (e) {
-    console.error('Generate error:', e.message);
+    console.error('❌ Generate error:', e.message);
     res.status(500).json({ error: e.message });
   }
 });
