@@ -75,18 +75,30 @@ export default function App() {
     stopAudio();
 
     try {
-      const res = await fetch('http://localhost:4000/api/story/generate', {
+      const apiUrl = import.meta.env.PROD 
+        ? '/api/story/generate'
+        : 'http://localhost:4000/api/story/generate';
+      
+      const res = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ words: wordList, childId: 'guest' })
       });
+      
+      if (!res.ok) {
+        throw new Error(`Server error: ${res.status}`);
+      }
+      
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      setStory(data.story);
-      saveToHistory(data.story);
+      
+      const story = data.story || data;
+      setStory(story);
+      saveToHistory(story);
+      console.log('✅ Story saved:', story);
     } catch (e) {
-      console.error(e);
-      setError('🚨 Story generation failed. Make sure the backend is running on port 4000.');
+      console.error('Story generation error:', e);
+      setError('🚨 Story generation failed. Check backend logs.');
     } finally {
       setLoading(false);
     }
