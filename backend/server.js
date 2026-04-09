@@ -1,5 +1,13 @@
 require("dotenv").config();
 
+console.log("🔧 Backend starting...");
+console.log("Environment:", {
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL: process.env.VERCEL,
+    hasGroqKey: !!process.env.GROQ_API_KEY,
+    hasMongoDB: !!process.env.MONGODB_URI
+});
+
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -37,8 +45,8 @@ app.get("/api/health", (req, res) => {
     res.json({ status: "ok", message: "Server is running" });
 });
 
-// ✅ start server LAST (only if not on Vercel)
-if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+// ✅ start server LAST (only if NOT in serverless environment)
+if (process.env.VERCEL !== "true") {
     const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
         console.log(`🚀 Server running on http://localhost:${PORT}`);
