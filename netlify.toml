@@ -1,16 +1,15 @@
 [build]
   base = "frontend"
-  command = "npm run build"
+  command = "npm install && npm run build"
   publish = "dist"
 
 [[redirects]]
   from = "/api/*"
-  to = "https://storytime-api.vercel.app/api/:splat"
+  to = "https://storytime-backend.vercel.app/api/:splat"
   status = 200
+  force = true
 
-[env]
-  VITE_API_URL = "/.netlify/functions/api"
-
-[[functions]]
-  directory = "backend"
-  node_bundler = "esbuild"
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
