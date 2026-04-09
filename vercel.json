@@ -1,18 +1,11 @@
 {
   "version": 2,
   "buildCommand": "cd backend && npm install && cd ../frontend && npm install && npm run build",
-  "public": false,
-  "functions": {
-    "api/index.js": {
-      "memory": 1024,
-      "maxDuration": 60,
-      "runtime": "nodejs18.x"
-    }
-  },
+  "outputDirectory": "frontend/dist",
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "dest": "api/index.js"
     },
     {
       "src": "/(.*)",
