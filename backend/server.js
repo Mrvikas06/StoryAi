@@ -2,6 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
 
 // ✅ create app FIRST
 const app = express();
@@ -10,11 +11,24 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// MongoDB Connection
+if (process.env.MONGODB_URI) {
+    mongoose.connect(process.env.MONGODB_URI)
+    .then(() => {
+        console.log("✅ MongoDB Connected");
+    })
+    .catch((err) => {
+        console.warn("⚠️ MongoDB Warning:", err.message);
+        console.log("   Continuing without database...");
+    });
+} else {
+    console.log("⚠️ MongoDB URI not configured - running in demo mode");
+}
+
 // ✅ routes AFTER app is created
 const ttsRoute = require("./routes/tts");
 app.use("/api/tts", ttsRoute);
 
-// (your other routes)
 const storyRoute = require("./routes/story");
 app.use("/api/story", storyRoute);
 
@@ -31,19 +45,5 @@ if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
     });
 }
 
-// Export for Vercel
+// Export for Vercel serverless functions
 module.exports = app;
-const mongoose = require("mongoose");
-
-if (process.env.MONGODB_URI) {
-    mongoose.connect(process.env.MONGODB_URI)
-    .then(() => {
-        console.log("✅ MongoDB Connected");
-    })
-    .catch((err) => {
-        console.warn("⚠️ MongoDB Warning:", err.message);
-        console.log("   Continuing without database...");
-    });
-} else {
-    console.log("⚠️ MongoDB URI not configured - running in demo mode");
-}
