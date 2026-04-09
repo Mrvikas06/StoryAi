@@ -18,12 +18,21 @@ app.use("/api/tts", ttsRoute);
 const storyRoute = require("./routes/story");
 app.use("/api/story", storyRoute);
 
-// ✅ start server LAST
-const PORT = process.env.PORT || 4000;
-
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", message: "Server is running" });
 });
+
+// ✅ start server LAST (only if not on Vercel)
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+    const PORT = process.env.PORT || 4000;
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on http://localhost:${PORT}`);
+    });
+}
+
+// Export for Vercel
+module.exports = app;
 const mongoose = require("mongoose");
 
 if (process.env.MONGODB_URI) {

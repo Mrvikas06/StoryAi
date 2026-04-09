@@ -1,6 +1,16 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:4000/api';
+// Auto-detect API URL based on environment
+const getApiUrl = () => {
+  if (import.meta.env.PROD) {
+    // On production, use the same host (Vercel/Netlify will handle routing)
+    return `${window.location.origin}/api`;
+  }
+  // Local development
+  return 'http://localhost:4000/api';
+};
+
+const BASE_URL = getApiUrl();
 
 export const generateStory = (words, childId = 'guest') =>
   axios.post(`${BASE_URL}/story/generate`, { words, childId })
