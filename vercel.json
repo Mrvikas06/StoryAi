@@ -15,9 +15,5 @@
       "src": "/",
       "dest": "/frontend/dist/index.html"
     }
-  ],
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "GROQ_API_KEY": "@groq_api_key"
-  }
+  ]
 }
