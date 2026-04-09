@@ -1,4 +1,3 @@
-// Vercel Serverless Function Handler
-// This wrapper imports and exposes the Express server for Vercel
+const app = require('../backend/server');
 
-module.exports = require('../backend/server');
+export default app;
