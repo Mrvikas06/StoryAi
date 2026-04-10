@@ -17,17 +17,15 @@ const app = express();
 
 // ✅ middlewares
 app.use(cors({
-    origin: [
-        "https://storyai-8gn.pages.dev",
-        "https://storyai.pages.dev",
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://localhost"
-    ],
-    credentials: true,
+    origin: "*",
+    credentials: false,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// Explicit preflight handler
+app.options('*', cors());
+
 app.use(express.json());
 
 // MongoDB Connection
