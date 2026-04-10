@@ -1,3 +1,6 @@
+const { webcrypto } = require('crypto');
+globalThis.crypto = webcrypto;
+
 require("dotenv").config();
 
 console.log("🔧 Backend starting...");

@@ -1,3 +1,7 @@
+// Fix for Node 18 - make crypto global
+const { webcrypto } = require('crypto');
+globalThis.crypto = webcrypto;
+
 const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
 const path = require('path');
 const fs = require('fs');
@@ -10,7 +14,6 @@ const VOICES = {
 const generateTTS = async (text, lang = 'en') => {
   const voiceId = VOICES[lang] || VOICES.en;
 
-  // Create temp dir
   const tempDir = path.join(__dirname, '../temp');
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
