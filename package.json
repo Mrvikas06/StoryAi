@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "build": "cd frontend && npm install && npm run build"
+    "build": "cd frontend && npm install && npm run build",
+    "deploy:cloudflare": "wrangler deploy",
+    "dev:cloudflare": "wrangler dev",
+    "deploy:render": "git push render main"
   },
   "engines": {
     "node": "18.x"
