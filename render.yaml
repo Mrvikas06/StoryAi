@@ -2,14 +2,31 @@ services:
   - type: web
     name: storytime-app
     runtime: node
-    buildCommand: cd backend && npm install && cd ../frontend && npm install && npm run build
-    startCommand: cd backend && node server.js
+    buildCommand: cd backend && npm install && npm cache clean --force && cd ../frontend && npm install && npm run build && cd ..
+    startCommand: node scripts/start-server.js
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: "10000"
+      - key: RENDER_EXTERNAL_URL
+        fromService:
+          name: storytime-app
+          property: host
       - key: GROQ_API_KEY
         sync: false
       - key: MONGODB_URI
         sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+
+    # Health check
+    healthCheckPath: /api/health
+    healthCheckInterval: 30
+
+    # Auto-deploy from GitHub
+    autoDeploy: true

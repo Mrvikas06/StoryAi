@@ -9,7 +9,12 @@
     "build": "cd frontend && npm install && npm run build",
     "deploy:cloudflare": "wrangler deploy",
     "dev:cloudflare": "wrangler dev",
-    "deploy:render": "git push render main"
+    "deploy:render": "git push render main",
+    "health-check": "node scripts/health-check.js",
+    "prestart": "node scripts/health-check.js",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "test": "echo 'Tests to be implemented'"
   },
   "engines": {
     "node": "18.x"

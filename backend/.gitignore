@@ -1,0 +1,34 @@
+# node_modules
+node_modules/
+dist/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.eslintcache
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+temp/
+*.mp3
+.cache/
+
+# Build outputs
+coverage/
