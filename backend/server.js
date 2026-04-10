@@ -67,7 +67,7 @@ if (process.env.VERCEL !== "true") {
         console.log(`🚀 Server running on http://localhost:${PORT}`);
     });
 }
-const cors = require('cors');
+
 
 app.use(cors({
   origin: [
