@@ -64,7 +64,12 @@ router.post('/speak', async (req, res) => {
 
   } catch (err) {
     console.error('❌ TTS Error:', err.message);
-    res.status(500).json({ error: err.message });
+    console.error('Stack:', err.stack);
+    // Return empty audio or error message instead of 500
+    res.status(500).json({ 
+      error: 'Text-to-speech unavailable. Python/edge-tts may not be installed on server.',
+      message: err.message 
+    });
   }
 });
 
