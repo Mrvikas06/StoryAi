@@ -1,29 +1,14 @@
 name = "storytime-app"
-type = "service"
 main = "src/worker.js"
 compatibility_date = "2024-01-01"
 
-[env.production]
-name = "storytime-app-prod"
-routes = [
-  { pattern = "storytime.pages.dev/*", zone_name = "pages.dev" }
-]
-
-[[env.production.vars]]
-NODE_ENV = "production"
-
-[[env.production.kv_namespaces]]
+[[kv_namespaces]]
 binding = "AUDIO_CACHE"
-id = "your_kv_namespace_id"
-preview_id = "your_kv_preview_id"
+id = "a4524946344b49aea061abf423473025"
+preview_id = "1bae7f4a9306422a9cbff603db080d7b"
 
 [build]
-command = "npm run build"
-cwd = "./"
-watch_paths = ["backend/**/*.js", "frontend/dist/**"]
-
-[build.upload]
-format = "service-worker"
-
-[env.production.build]
 command = "cd frontend && npm install && npm run build && cd ../backend && npm install"
+
+[vars]
+NODE_ENV = "production"
