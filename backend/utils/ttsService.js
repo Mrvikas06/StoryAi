@@ -6,13 +6,19 @@ const crypto = require('crypto');
 // Voice options - use voices that work reliably
 const VOICES = {
   en: 'en-US-AriaNeural',      // Professional English female
-  hi: 'hi-IN-NeerajNeural'     // Hindi male narrator
+  hi: 'hi-IN-MadhurNeural'     // Hindi male narrator (reliable)
 };
 
 // Fallback voices if primary fails
 const FALLBACK_VOICES = {
   en: 'en-US-GuyNeural',
-  hi: 'hi-IN-MadhurNeural'     // Alternative Hindi voice
+  hi: 'hi-IN-NeerajNeural'     // Alternative Hindi voice
+};
+
+// Additional fallback voices for extra reliability
+const SECOND_FALLBACK_VOICES = {
+  en: 'en-US-JennyNeural',
+  hi: 'hi-IN-AmolNeural'       // Third option for Hindi
 };
 
 // Cache for generated audio files
@@ -27,6 +33,12 @@ const generateTTS = async (text, lang = 'en', attemptCount = 0) => {
       if (attemptCount === 1) {
         voiceId = FALLBACK_VOICES[lang] || VOICES[lang];
         console.log('🎤 Trying fallback voice:', voiceId);
+      }
+      
+      // Use second fallback on third attempt
+      if (attemptCount === 2) {
+        voiceId = SECOND_FALLBACK_VOICES[lang] || VOICES[lang];
+        console.log('🎤 Trying second fallback voice:', voiceId);
       }
       
       // Check cache first
@@ -98,9 +110,17 @@ const generateTTS = async (text, lang = 'en', attemptCount = 0) => {
               .catch(reject);
           }
           
-          // If fallback also fails and it's Hindi, try English
-          if (lang === 'hi' && attemptCount === 1) {
-            console.log('⚠️ Hindi TTS failed completely, trying English fallback...');
+          // Retry with second fallback on second failure
+          if (attemptCount === 1) {
+            console.log('⚠️ Fallback voice failed, trying second fallback...');
+            return generateTTS(text, lang, attemptCount + 2)
+              .then(resolve)
+              .catch(reject);
+          }
+          
+          // If all voices fail and it's Hindi, try English
+          if (lang === 'hi' && attemptCount === 2) {
+            console.log('⚠️ All Hindi voices failed, trying English fallback...');
             return generateTTS(text, 'en', 0)
               .then(resolve)
               .catch(reject);
@@ -121,9 +141,17 @@ const generateTTS = async (text, lang = 'en', attemptCount = 0) => {
               .catch(reject);
           }
           
-          // If fallback also fails and it's Hindi, try English
-          if (lang === 'hi' && attemptCount === 1) {
-            console.log('⚠️ Hindi audio creation failed, trying English fallback...');
+          // Retry with second fallback on second failure
+          if (attemptCount === 1) {
+            console.log('⚠️ Fallback audio not created, trying second fallback...');
+            return generateTTS(text, lang, attemptCount + 2)
+              .then(resolve)
+              .catch(reject);
+          }
+          
+          // If all voices fail and it's Hindi, try English
+          if (lang === 'hi' && attemptCount === 2) {
+            console.log('⚠️ All Hindi voices failed to create file, trying English fallback...');
             return generateTTS(text, 'en', 0)
               .then(resolve)
               .catch(reject);
@@ -145,9 +173,24 @@ const generateTTS = async (text, lang = 'en', attemptCount = 0) => {
               .catch(reject);
           }
           
-          // If fallback also fails and it's Hindi, try English
-          if (lang === 'hi' && attemptCount === 1) {
-            console.log('⚠️ Hindi audio too small, trying English fallback...');
+          // Retry with second fallback on second failure
+          if (attemptCount === 1) {
+            console.log('⚠️ Fallback audio too small, trying second fallback...');
+            return generateTTS(text, lang, attemptCount + 2)
+              .then(resolve)
+              .catch(reject);
+          }
+          
+          // If all voices fail and it's Hindi, try English
+          if (lang === 'hi' && attemptCount === 2) {
+            console.log('⚠️ All Hindi audio files too small, trying English fallback...');
+            return generateTTS(text, 'en', 0)
+              .then(resolve)
+              .catch(reject);
+          }
+          
+          return reject(new Error(`Audio file too small: ${stats.size} bytes`));
+        }
             return generateTTS(text, 'en', 0)
               .then(resolve)
               .catch(reject);
