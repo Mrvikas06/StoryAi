@@ -2,7 +2,7 @@ services:
   - type: web
     name: storytime-app
     runtime: node
-    buildCommand: cd backend && npm install && npm cache clean --force && cd ../frontend && npm install && npm run build && cd ..
+    buildCommand: npm install && cd backend && npm install && npm cache clean --force && cd ../frontend && npm install && npm run build && cd ..
     startCommand: node scripts/start-server.js
     envVars:
       - key: NODE_ENV
