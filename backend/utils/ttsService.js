@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
 const path = require('path');
 const fs = require('fs');
@@ -8,33 +7,15 @@ const VOICES = {
   hi: 'hi-IN-MadhurNeural'
 };
 
-const audioCache = new Map();
-
 const generateTTS = async (text, lang = 'en') => {
   const voiceId = VOICES[lang] || VOICES.en;
-  const cacheKey = `${voiceId}_${text}`;
-  const hash = crypto.createHash('md5').update(cacheKey).digest('hex');
-
-  // Return cached file if exists
-  if (audioCache.has(hash)) {
-    const cached = audioCache.get(hash);
-    if (fs.existsSync(cached.filePath)) return cached;
-    audioCache.delete(hash);
-  }
 
   // Create temp dir
   const tempDir = path.join(__dirname, '../temp');
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
-  const fileName = `tts_${hash}.mp3`;
+  const fileName = `tts_${Date.now()}.mp3`;
   const filePath = path.join(tempDir, fileName);
-
-  // Return if already on disk
-  if (fs.existsSync(filePath)) {
-    const data = { fileName, filePath };
-    audioCache.set(hash, data);
-    return data;
-  }
 
   console.log('🎤 Generating TTS:', { voice: voiceId, chars: text.length, lang });
 
@@ -53,9 +34,7 @@ const generateTTS = async (text, lang = 'en') => {
   const stats = fs.statSync(filePath);
   console.log('✅ Audio generated:', fileName, `(${stats.size} bytes)`);
 
-  const data = { fileName, filePath };
-  audioCache.set(hash, data);
-  return data;
+  return { fileName, filePath };
 };
 
 module.exports = { generateTTS };
