@@ -1,27 +1,17 @@
 services:
   - type: web
-    name: storytime-app
+    name: storyai-api
     runtime: node
-    buildCommand: npm install --production=false && cd backend && npm install --production=false && cd ../frontend && npm install && npm run build
-    startCommand: npm start
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: "10000"
-      - key: RENDER_EXTERNAL_URL
-        fromService:
-          name: storytime-app
-          property: host
       - key: GROQ_API_KEY
         sync: false
       - key: MONGODB_URI
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: ANTHROPIC_API_KEY
-        sync: false
-      - key: ELEVENLABS_API_KEY
         sync: false
 
     # Health check
