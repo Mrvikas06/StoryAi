@@ -53,7 +53,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // ✅ Handle OPTIONS for all routes (preflight)
-app.options("*", (req, res) => {
+app.options("/*", (req, res) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
     res.header("Access-Control-Allow-Headers", "*");
