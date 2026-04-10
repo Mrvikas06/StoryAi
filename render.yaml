@@ -2,8 +2,8 @@ services:
   - type: web
     name: storytime-app
     runtime: node
-    buildCommand: npm install && cd backend && npm install && npm cache clean --force && cd ../frontend && npm install && npm run build && cd ..
-    startCommand: node scripts/start-server.js
+    buildCommand: npm ci && cd backend && npm ci && cd ../frontend && npm ci && npm run build
+    startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
