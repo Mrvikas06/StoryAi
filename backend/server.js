@@ -13,7 +13,7 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-// ✅ CORS config
+// ✅ CORS config - FIRST middleware
 app.use(cors({
     origin: [
         'https://storyai-8gn.pages.dev',
@@ -25,7 +25,16 @@ app.use(cors({
     credentials: true
 }));
 
-
+// Manual CORS headers as fallback
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
 
 app.use(express.json());
 
