@@ -67,6 +67,22 @@ if (process.env.VERCEL !== "true") {
         console.log(`🚀 Server running on http://localhost:${PORT}`);
     });
 }
+const cors = require('cors');
+
+app.use(cors({
+  origin: [
+    'https://storyai-8gn.pages.dev',
+    'http://localhost:3000',      // for local dev
+    'http://localhost:5173',      // if using Vite
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+}));
+
+// This must be BEFORE all your routes
+app.use(express.json());
+app.use('/api', yourRoutes);
 
 // Export for Vercel serverless functions
 module.exports = app;
