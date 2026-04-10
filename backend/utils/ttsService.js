@@ -10,7 +10,6 @@ const VOICES = {
 const generateTTS = async (text, lang = 'en') => {
   const voiceId = VOICES[lang] || VOICES.en;
 
-  // Create temp dir
   const tempDir = path.join(__dirname, '../temp');
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
