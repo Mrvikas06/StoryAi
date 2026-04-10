@@ -52,6 +52,14 @@ app.get("/api/health", (req, res) => {
     res.json({ status: "ok", message: "Server is running" });
 });
 
+// ✅ Handle OPTIONS for all routes (preflight)
+app.options("*", (req, res) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+    res.header("Access-Control-Allow-Headers", "*");
+    res.sendStatus(200);
+});
+
 // ✅ start server LAST (only if NOT in serverless environment)
 if (process.env.VERCEL !== "true") {
     const PORT = process.env.PORT || 4000;
