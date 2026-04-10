@@ -3,8 +3,8 @@ import axios from 'axios';
 // Auto-detect API URL based on environment
 const getApiUrl = () => {
   if (import.meta.env.PROD) {
-    // On production, use the same host (Vercel/Netlify will handle routing)
-    return `${window.location.origin}/api`;
+    // On production, use Render.io backend
+    return 'https://storytime-app-api.onrender.com/api';
   }
   // Local development
   return 'http://localhost:4000/api';

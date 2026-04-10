@@ -1,26 +1,12 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
+const path = require('path');
+const express = require('express');
+const cors = require('cors');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// Import routes
+const storyRoute = require('../backend/routes/story');
+const ttsRoute = require('../backend/routes/tts');
 
-// Import Express and routes
-import express from 'express';
-import cors from 'cors';
-
-// Dynamic imports for compatibility
-let storyRoute, ttsRoute;
-
-async function loadRoutes() {
-  if (!storyRoute) {
-    const storyModule = await import('../backend/routes/story.js');
-    storyRoute = storyModule.default;
-  }
-  if (!ttsRoute) {
-    const ttsModule = await import('../backend/routes/tts.js');
-    ttsRoute = ttsModule.default;
-  }
-}
-
+// Create Express app
 const app = express();
 
 // Middleware
@@ -29,13 +15,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static frontend files
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-// Initialize routes
-app.use(async (req, res, next) => {
-  await loadRoutes();
-  next();
-});
+const frontendDistPath = path.join(__dirname, '../frontend/dist');
+app.use(express.static(frontendDistPath));
 
 // API routes
 app.use('/api/story', storyRoute);
@@ -52,7 +33,7 @@ app.get('/api/health', (req, res) => {
 
 // Catch-all for React app (SPA routing)
 app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, '../frontend/dist/index.html');
+  const indexPath = path.join(frontendDistPath, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) {
       res.status(404).json({ error: 'Not found' });
@@ -60,5 +41,5 @@ app.get('*', (req, res) => {
   });
 });
 
-// Export for Cloudflare Workers
-export default app;
+// Export as default for Cloudflare
+module.exports = app;
