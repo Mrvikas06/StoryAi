@@ -76,7 +76,7 @@ export default function App() {
 
     try {
       const apiUrl = import.meta.env.PROD 
-        ? '/api/story/generate'
+        ? 'https://storytime-app-api.onrender.com/api/story/generate'
         : 'http://localhost:4000/api/story/generate';
       
       const res = await fetch(apiUrl, {
