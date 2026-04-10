@@ -8,29 +8,26 @@ console.log("Environment:", {
 });
 
 const express = require("express");
-const cors = require("cors");
 const mongoose = require("mongoose");
 
 const app = express();
 
-// ✅ CORS config - FIRST middleware
-app.use(cors({
-    origin: [
-        'https://storyai-8gn.pages.dev',
-        'http://localhost:3000',
-        'http://localhost:5173',
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-}));
-
-// Manual CORS headers as fallback
+// ✅ CORS - manual, single, no conflicts
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    if (req.method === 'OPTIONS') {
+    const allowedOrigins = [
+        "https://storyai-8gn.pages.dev",
+        "http://localhost:3000",
+        "http://localhost:5173"
+    ];
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader("Access-Control-Allow-Origin", origin);
+    }
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+
+    if (req.method === "OPTIONS") {
         return res.sendStatus(200);
     }
     next();
@@ -66,4 +63,3 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
-

@@ -15,7 +15,6 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",
     "@google/generative-ai": "^0.24.1",
-    "cors": "^2.8.6",
     "dotenv": "^17.4.0",
     "elevenlabs": "^1.59.0",
     "express": "^5.2.1",
