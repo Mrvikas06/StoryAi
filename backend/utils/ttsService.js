@@ -1,7 +1,7 @@
+const crypto = require('crypto');
 const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
 const path = require('path');
 const fs = require('fs');
-const crypto = require('crypto');
 
 const VOICES = {
   en: 'en-US-AriaNeural',
