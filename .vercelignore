@@ -1,8 +1,0 @@
-node_modules
-.git
-.env
-.env.local
-tts_cache
-temp
-*.mp3
-.DS_Store
