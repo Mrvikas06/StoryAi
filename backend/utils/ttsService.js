@@ -191,13 +191,6 @@ const generateTTS = async (text, lang = 'en', attemptCount = 0) => {
           
           return reject(new Error(`Audio file too small: ${stats.size} bytes`));
         }
-            return generateTTS(text, 'en', 0)
-              .then(resolve)
-              .catch(reject);
-          }
-          
-          return reject(new Error(`Audio file too small: ${stats.size} bytes`));
-        }
 
         const data = { fileName, filePath };
         audioCache.set(hash, data);
