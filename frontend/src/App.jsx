@@ -20,7 +20,6 @@ export default function App() {
   const [speakLang, setSpeakLang] = useState('');
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
-  const [showHindi, setShowHindi] = useState(true);
   const [ttsLoading, setTtsLoading] = useState(false);
 
   const storyRef = useRef(null);
@@ -29,7 +28,7 @@ export default function App() {
   useEffect(() => {
     const h = localStorage.getItem('story_history');
     if (h) {
-      try { setHistory(JSON.parse(h)); } catch(e) {}
+      try { setHistory(JSON.parse(h)); } catch { /* ignore parse errors */ }
     }
   }, []);
 
@@ -300,7 +299,7 @@ export default function App() {
             </div>
 
             {/* Hindi Story */}
-            {showHindi && story.hindi && (
+            {story.hindi && (
               <div className="lang-block hi-block">
                 <div className="lang-header">
                   <span className="lang-emoji">🇮🇳</span>
