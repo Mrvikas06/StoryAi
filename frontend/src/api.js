@@ -14,7 +14,7 @@ const getApiUrl = () => {
     // If on render.com, construct backend URL
     if (host.includes('pages.dev')) {
       // Cloudflare Pages - use the API backend URL
-      return 'https://storytime-app-api.onrender.com/api';
+      return 'https://storyai-1-o3pn.onrender.com/api';
     }
     
     // Default: use relative path (works when backend serves frontend)

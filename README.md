@@ -59,7 +59,7 @@
 
 **Result:**
 - Frontend: `https://storytime-app.pages.dev`
-- Backend: `https://storytime-app-api.onrender.com`
+- Backend: `https://storyai-1-o3pn.onrender.com`
 
 ## 💻 Local Development
 
