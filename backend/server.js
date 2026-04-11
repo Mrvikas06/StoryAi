@@ -18,7 +18,7 @@ const app = express();
 // ✅ CORS - manual, single, no conflicts
 app.use((req, res, next) => {
     const allowedOrigins = [
-        "https://storyai.pages.dev",
+        "https://storyai-8gn.pages.dev",
         "http://localhost:3000",
         "http://localhost:5173"
     ];
