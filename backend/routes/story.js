@@ -8,28 +8,40 @@ const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 function buildPrompt(words) {
   return `You are a master storyteller writing for special needs children aged 6-12.
 Create a meaningful, emotionally rich bilingual story using these words: ${words.join(', ')}.
-The story must naturally include ONE activity of daily living (ADL) — like brushing teeth, getting dressed, washing hands, eating a meal, or tidying up — woven into the plot, NOT listed as steps.
+
+The story must naturally teach ONE real-life skill woven into the plot. Choose the most fitting skill type based on the words given:
+
+SKILL TYPES (pick one that fits best):
+- Daily Living (ADL): brushing teeth, getting dressed, washing hands, eating, tidying up
+- Emotions & Feelings: naming feelings, calming down, dealing with anger/fear/jealousy
+- Social Skills: sharing, taking turns, making friends, saying sorry, asking for help
+- Thinking Skills: solving a problem, making a choice, remembering steps, staying focused
+- Brave Moments: trying something new, going to school, doctor visit, dark room, loud place
+- Body & Movement: balance, fine motor (buttoning, holding pencil), gross motor (running, jumping)
+- Communication: asking for what you need, saying no, expressing love, using words not hands
+- Self-Care & Safety: crossing road safely, stranger safety, knowing your name/address, hot/cold awareness
 
 FORMAT (follow exactly, plain text only, no markdown):
 Title: [2-3 emojis + creative compelling title]
 Emoji: [one main character emoji only]
-ADL: [name of the daily living skill secretly taught, e.g. "Washing Hands"]
-English: [ONE rich paragraph. 7-9 sentences. Give the main character a unique, culturally diverse name and a vivid personality (curious, stubborn, dreamy, brave). They face a real relatable problem. The solution naturally involves doing the ADL — show each action concretely as part of the story (what they pick up, what they feel, what they do). Use sensory details, simple but powerful words, light repetition of key actions. End with pride, warmth, or discovery. Think Roald Dahl meets an occupational therapist — magical but grounded.]
+SkillType: [which skill type from above is being taught]
+Skill: [specific skill, e.g. "Calming Down When Angry" or "Buttoning a Shirt"]
+English: [ONE rich paragraph. 7-9 sentences. Give the main character a unique name and vivid personality. They face a real relatable problem. The solution naturally involves doing or learning the skill — show it through concrete sensory action in the story. Use simple but powerful words, light repetition of key moments. End with pride, warmth, or discovery.]
 Hindi: [Full natural Hindi translation. Conversational, warm, short sentences a child understands.]
-Question: [One thought-provoking question connecting the story to the child's own daily life]
+Question: [One thought-provoking question connecting the story to the child's own life]
 QuestionHindi: [Same question in Hindi]
 
-CHARACTER BANK (rotate, never repeat same name twice in a session):
+CHARACTER BANK (rotate, never repeat same name twice):
 Boys: Arjun, Zaid, Leo, Kabir, Milo, Rohan, Finn, Veer, Oscar, Aarav
 Girls: Mira, Aisha, Nora, Priya, Zara, Leila, Tara, Sofia, Ananya, Ruby
 Animals/helpers: Bruno the dog, Cheeku the squirrel, Meow the cat, Biscuit the rabbit
 
 RULES:
-- ADL must feel like a natural story moment, NOT a lesson or instruction
+- Skill must feel like a natural story moment, NOT a lesson or instruction
 - Character must have a name, quirk, and emotional arc
-- Show the ADL through story action: "she squeezed the blue toothpaste slowly onto the brush" not "she brushed her teeth"
-- Sensory language: textures, sounds, smells, temperatures
-- Simple words, no abstract ideas, no metaphors that confuse
+- Show skill through story action — "his hands shook but he pushed the button through the hole" not "he learned to button"
+- Sensory language: textures, sounds, smells, temperatures, feelings in the body
+- Simple words, no abstract ideas, no confusing metaphors
 - Struggle then success arc — child sees themselves in the win
 - Happy or hopeful ending always
 - No markdown, no asterisks, plain text only`;
