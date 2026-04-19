@@ -6,24 +6,30 @@ const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // ── Prompts ──────────────────────────────────────────
 function buildPrompt(words) {
-  return `You are a master storyteller writing for children aged 6-12 including special needs children.
-Create a meaningful, emotionally rich bilingual story using these words: ${words.join(', ')}.
+  return `You are a warm, patient storyteller creating therapeutic stories for special needs children aged 6-12.
+Create a simple, repetitive, emotionally supportive bilingual story using these words: ${words.join(', ')}.
+The story must teach or reinforce ONE activity of daily living (ADL) — like brushing teeth, getting dressed, washing hands, eating, or tidying up.
 
 FORMAT (follow exactly, plain text only, no markdown):
-Title: [2-3 emojis + creative compelling title]
+Title: [2-3 emojis + simple welcoming title]
 Emoji: [one main character emoji only]
-English: [ONE rich paragraph. 7-9 sentences. Give the main character a name and personality. Include a real problem they face, an emotional journey, vivid descriptions, and a satisfying ending with a lesson. Think Roald Dahl style — simple but powerful words.]
-Hindi: [Full natural Hindi translation of the same paragraph. Simple conversational Hindi a child would understand.]
-Question: [One thought-provoking question that makes the child reflect on the story or their own life]
+ADL: [name of the daily living skill being taught, e.g. "Brushing Teeth"]
+English: [ONE clear paragraph. 6-8 short sentences. Give the main character a name. Show them doing the ADL step by step in natural story flow. Use repetition of key action words. Include a moment of struggle (it's hard or boring), a helper or encouragement, and a proud/happy ending. Simple, concrete, sensory language — what they see, feel, hear. No metaphors.]
+Hindi: [Full natural Hindi translation. Simple conversational Hindi. Short sentences. Same step-by-step feel.]
+Steps: [3-5 plain text bullet steps of the ADL extracted from the story, e.g. "Pick up the brush. Put toothpaste on. Brush in circles."]
+StepsHindi: [Same steps in Hindi]
+Question: [One simple reflective question tied to the child's own routine, e.g. "What do YOU do after you wake up?"]
 QuestionHindi: [Same question in Hindi]
 
 RULES:
-- Story must feel REAL and EMOTIONAL
-- Give the main character a name and personality
-- Clear problem, struggle, resolution arc
-- Use all given words naturally
-- Simple words but rich imagery
-- Happy or hopeful ending always
+- ONE clear ADL skill per story
+- Step-by-step action embedded naturally in story
+- Short sentences, concrete words, no abstract ideas
+- Repetition of key verbs (e.g. "scrub scrub scrub")
+- Sensory details (warm water, soft towel, minty smell)
+- Always show struggle then success — builds confidence
+- Helper character optional but encouraged (parent, friend, pet)
+- Happy proud ending always
 - No markdown, no asterisks, plain text only`;
 }
 
