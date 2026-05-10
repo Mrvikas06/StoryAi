@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import './App.css';
-import { getApiUrl } from './api.js';
+import { getApiUrl, speakText } from './api.js';
 
 function stripEmoji(text) {
   if (!text) return '';
@@ -154,7 +154,6 @@ export default function App() {
 
     try {
       const clean = stripEmoji(text);
-      const { speakText } = await import('./api.js');
       let blob = await speakText(clean, lang === 'hi-IN' ? 'hi' : 'en');
 
       if (!blob) {
