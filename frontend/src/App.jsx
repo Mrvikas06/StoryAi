@@ -73,33 +73,84 @@ export default function App() {
         return;
       }
 
+      const synth = window.speechSynthesis;
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang === 'hi-IN' ? 'hi-IN' : 'en-US';
+      const targetLang = lang === 'hi-IN' ? 'hi-IN' : 'en-US';
+      utterance.lang = targetLang;
       utterance.rate = 0.95;
       utterance.pitch = 1;
 
-      utterance.onstart = () => {
-        setSpeaking(true);
-        setSpeakLang(lang);
-        setTtsLoading(false);
+      let triedFallback = false;
+
+      const selectVoice = () => {
+        const voices = synth.getVoices() || [];
+        if (!voices.length) return false;
+        // prefer exact language match, then prefix match, then first available
+        const exact = voices.find(v => v.lang === targetLang);
+        const prefix = voices.find(v => v.lang && v.lang.startsWith(targetLang.split('-')[0]));
+        utterance.voice = exact || prefix || voices[0] || null;
+        return true;
       };
 
-      utterance.onend = () => {
-        setSpeaking(false);
-        setSpeakLang('');
-        setTtsLoading(false);
-        resolve();
+      const startSpeak = () => {
+        utterance.onstart = () => {
+          setSpeaking(true);
+          setSpeakLang(lang);
+          setTtsLoading(false);
+        };
+
+        utterance.onend = () => {
+          setSpeaking(false);
+          setSpeakLang('');
+          setTtsLoading(false);
+          resolve();
+        };
+
+        utterance.onerror = (ev) => {
+          console.error('SpeechSynthesis error', ev);
+          if (!triedFallback) {
+            triedFallback = true;
+            // Retry with a more generic language/voice
+            utterance.lang = 'en-US';
+            const voices = synth.getVoices() || [];
+            utterance.voice = voices[0] || null;
+            synth.cancel();
+            synth.speak(utterance);
+            return;
+          }
+          setSpeaking(false);
+          setSpeakLang('');
+          setTtsLoading(false);
+          reject(new Error('Browser speech synthesis failed'));
+        };
+
+        try {
+          synth.cancel();
+          synth.speak(utterance);
+        } catch (err) {
+          console.error('synth.speak error', err);
+          reject(new Error('Browser speech synthesis failed'));
+        }
       };
 
-      utterance.onerror = () => {
-        setSpeaking(false);
-        setSpeakLang('');
-        setTtsLoading(false);
-        reject(new Error('Browser speech synthesis failed'));
-      };
-
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.speak(utterance);
+      // Try to select a voice; if none are loaded yet, wait for voiceschanged
+      if (selectVoice()) {
+        startSpeak();
+      } else {
+        const onVoicesChanged = () => {
+          if (selectVoice()) {
+            synth.removeEventListener('voiceschanged', onVoicesChanged);
+            startSpeak();
+          }
+        };
+        synth.addEventListener('voiceschanged', onVoicesChanged);
+        // Fallback: start speaking after short timeout even if voices didn't load
+        setTimeout(() => {
+          synth.removeEventListener('voiceschanged', onVoicesChanged);
+          selectVoice();
+          startSpeak();
+        }, 600);
+      }
     });
   };
 
