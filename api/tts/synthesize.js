@@ -1,10 +1,10 @@
 // api/tts/synthesize.js - Text-to-speech endpoint
-import fs from 'fs';
-import path from 'path';
-import { execSync } from 'child_process';
-import crypto from 'crypto';
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+const crypto = require('crypto');
 
-export default async (req, res) => {
+module.exports = async (req, res) => {
   if (req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

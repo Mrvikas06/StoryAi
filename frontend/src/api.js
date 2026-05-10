@@ -1,27 +1,14 @@
 import axios from 'axios';
 
-// Auto-detect API URL based on environment
-const getApiUrl = () => {
-  // Production deployment on Render.io
-  if (import.meta.env.PROD && typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    
-    // If running on same host (e.g., localhost:4000), use relative path
-    if (host === 'localhost' || host === '127.0.0.1') {
-      return '/api';
-    }
-    
-    // If on render.com, construct backend URL
-    if (host.includes('pages.dev')) {
-      // Cloudflare Pages - use the API backend URL
-      return 'https://storyai-1-o3pn.onrender.com/api';
-    }
-    
-    // Default: use relative path (works when backend serves frontend)
+export const getApiUrl = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL.replace(/\/$/, '');
+  }
+
+  if (typeof window !== 'undefined' && import.meta.env.PROD) {
     return '/api';
   }
-  
-  // Development: use local backend
+
   return 'http://localhost:4000/api';
 };
 

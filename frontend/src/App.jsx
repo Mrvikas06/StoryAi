@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import './App.css';
+import { getApiUrl } from './api.js';
 
 function stripEmoji(text) {
   if (!text) return '';
@@ -57,9 +58,49 @@ export default function App() {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
     setSpeaking(false);
     setSpeakLang('');
     setTtsLoading(false);
+  };
+
+  const speakWithBrowser = (text, lang) => {
+    return new Promise((resolve, reject) => {
+      if (typeof window === 'undefined' || !window.speechSynthesis) {
+        reject(new Error('Browser speech synthesis is not available'));
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang === 'hi-IN' ? 'hi-IN' : 'en-US';
+      utterance.rate = 0.95;
+      utterance.pitch = 1;
+
+      utterance.onstart = () => {
+        setSpeaking(true);
+        setSpeakLang(lang);
+        setTtsLoading(false);
+      };
+
+      utterance.onend = () => {
+        setSpeaking(false);
+        setSpeakLang('');
+        setTtsLoading(false);
+        resolve();
+      };
+
+      utterance.onerror = () => {
+        setSpeaking(false);
+        setSpeakLang('');
+        setTtsLoading(false);
+        reject(new Error('Browser speech synthesis failed'));
+      };
+
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+    });
   };
 
   const generateStory = async () => {
@@ -74,9 +115,7 @@ export default function App() {
     stopAudio();
 
     try {
-      const apiUrl = import.meta.env.PROD 
-        ? 'https://storyai-1-o3pn.onrender.com/api/story/generate'
-        : 'http://localhost:4000/api/story/generate';
+      const apiUrl = `${getApiUrl()}/story/generate`;
       
       const res = await fetch(apiUrl, {
         method: 'POST',
@@ -155,10 +194,16 @@ export default function App() {
 
       await audio.play();
     } catch (e) {
-      console.error('TTS error:', e.message);
-      setTtsLoading(false);
-      setSpeaking(false);
-      setError(`🔊 Voice error: ${e.message}`);
+      try {
+        const clean = stripEmoji(text);
+        await speakWithBrowser(clean, lang);
+      } catch (browserError) {
+        console.error('TTS error:', e.message);
+        console.error('Browser TTS error:', browserError.message);
+        setTtsLoading(false);
+        setSpeaking(false);
+        setError(`🔊 Voice error: ${browserError.message}`);
+      }
     }
   };
 

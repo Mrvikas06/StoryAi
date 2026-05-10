@@ -61,6 +61,22 @@
 - Frontend: `https://storytime-app.pages.dev`
 - Backend: `https://storyai-1-o3pn.onrender.com`
 
+### 3️⃣ Vercel
+
+```bash
+# 1. Push this repo to GitHub
+# 2. Go to https://vercel.com/new
+# 3. Import the repository
+# 4. Keep the root directory as-is
+# 5. Add env vars: GROQ_API_KEY, MONGODB_URI (optional)
+# 6. Deploy
+```
+
+**Result:**
+- Frontend: Vercel static site from `frontend/dist`
+- API: serverless functions under `/api/*`
+- TTS: browser speech fallback on Vercel if the serverless audio route is unavailable
+
 ## 💻 Local Development
 
 ```bash
@@ -207,6 +223,13 @@ ELEVENLABS_API_KEY=xxx
 ✅ Python must be installed on server (pre-installed on Render)
 ✅ Check TTS route is working: POST /api/tts/speak
 ✅ Verify audio file is generated: backend/temp folder
+```
+
+### Vercel TTS fallback
+```
+✅ Vercel does not support the Python-based audio workflow used by the server route
+✅ The app will fall back to browser speech synthesis automatically
+✅ For server-generated MP3 audio, deploy the backend to Render instead
 ```
 
 ### Frontend shows "build not found"
