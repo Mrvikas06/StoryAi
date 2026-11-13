@@ -1,10 +1,11 @@
 import useVoiceInput from '../hooks/useVoiceInput';
 
-const QUICK_SUGGESTIONS = [
-  ['Dragon', 'Compass', 'Mountain'],
-  ['Garden', 'River', 'Friendship'],
-  ['Astronaut', 'Star', 'Secret'],
-  ['Kitten', 'Lantern', 'Courage']
+const THEME_IDEAS = [
+  { icon: '🦁', label: 'Playful Animals', words: ['Puppy', 'Rainbow', 'Picnic'] },
+  { icon: '🚀', label: 'Space Quest', words: ['Rocket', 'Star', 'Moon'] },
+  { icon: '🏰', label: 'Magic Kingdom', words: ['Dragon', 'Castle', 'Wand'] },
+  { icon: '🌊', label: 'Ocean Voyage', words: ['Dolphin', 'Shell', 'Island'] },
+  { icon: '🌲', label: 'Forest Friends', words: ['Squirrel', 'Acorn', 'Treehouse'] }
 ];
 
 export default function WordInput({
@@ -38,8 +39,8 @@ export default function WordInput({
     }
   );
 
-  const applySuggestion = (suggestion) => {
-    setWords(suggestion);
+  const applyTheme = (themeWords) => {
+    setWords(themeWords);
     if (setError) setError('');
   };
 
@@ -51,39 +52,40 @@ export default function WordInput({
   };
 
   return (
-    <section className="input-card">
-      <div className="card-header-row">
-        <div>
-          <h2 className="card-title">Story Prompt Words</h2>
-          <p className="card-description">
-            Enter up to three words or speak into your microphone to generate a custom bilingual story.
-          </p>
+    <section className="kid-card input-card">
+      <div className="card-top-header">
+        <div className="title-area">
+          <span className="card-icon-badge">✨</span>
+          <div>
+            <h2 className="kid-title">What is your story about?</h2>
+            <p className="kid-subtitle">
+              Type or speak up to 3 fun words, or pick an adventure pack below!
+            </p>
+          </div>
         </div>
 
         {isSupported && (
           <button
             type="button"
-            className={`btn-voice ${listening ? 'listening' : ''}`}
+            className={`kid-btn-voice ${listening ? 'listening' : ''}`}
             onClick={listening ? stopListening : () => startListening('en-US')}
-            title={listening ? 'Stop listening' : 'Speak prompt words'}
+            title={listening ? 'Click to stop' : 'Click to speak your words'}
           >
-            <span className="voice-indicator"></span>
-            {listening ? 'Listening...' : 'Voice Input'}
+            <span className="mic-icon">{listening ? '⏹' : '🎤'}</span>
+            <span>{listening ? 'Listening...' : 'Speak Words'}</span>
           </button>
         )}
       </div>
 
-      <div className="word-inputs-grid">
+      <div className="kid-words-grid">
         {words.map((word, i) => (
-          <div key={i} className="input-field-group">
-            <label htmlFor={`word-input-${i}`} className="field-label">
-              Word {i + 1}
-            </label>
+          <div key={i} className="kid-input-wrapper">
+            <span className="input-number-tag">{['🌟 Word 1', '🎈 Word 2', '🎨 Word 3'][i]}</span>
             <input
               id={`word-input-${i}`}
               type="text"
-              className="text-input"
-              placeholder={['e.g. Brave', 'e.g. River', 'e.g. Lantern'][i]}
+              className="kid-text-input"
+              placeholder={['e.g. Bear', 'e.g. Lantern', 'e.g. Garden'][i]}
               value={word}
               maxLength={24}
               onChange={(e) => updateWord(i, e.target.value)}
@@ -93,42 +95,47 @@ export default function WordInput({
         ))}
       </div>
 
-      <div className="suggestion-row">
-        <span className="suggestion-label">Try ideas:</span>
-        <div className="suggestion-chips">
-          {QUICK_SUGGESTIONS.map((preset, idx) => (
+      <div className="theme-packs-section">
+        <span className="theme-heading">Quick Adventure Packs:</span>
+        <div className="theme-chips-list">
+          {THEME_IDEAS.map((theme, idx) => (
             <button
               key={idx}
               type="button"
-              className="chip-btn"
-              onClick={() => applySuggestion(preset)}
+              className="theme-chip-btn"
+              onClick={() => applyTheme(theme.words)}
             >
-              {preset.join(' · ')}
+              <span className="chip-emoji">{theme.icon}</span>
+              <span className="chip-name">{theme.label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {error && (
-        <div className="alert-box alert-error" role="alert">
-          {error}
+        <div className="kid-alert-box" role="alert">
+          <span className="alert-emoji">💡</span>
+          <span>{error}</span>
         </div>
       )}
 
-      <div className="action-row">
+      <div className="card-bottom-actions">
         <button
           type="button"
-          className="btn-primary"
+          className="kid-btn-generate"
           onClick={onGenerate}
           disabled={loading}
         >
           {loading ? (
             <>
-              <span className="loading-spinner"></span>
-              Generating Narrative...
+              <span className="kid-spinner"></span>
+              <span>Weaving Your Story...</span>
             </>
           ) : (
-            'Generate Story'
+            <>
+              <span className="sparkle-icon">📖</span>
+              <span>Create My Storybook!</span>
+            </>
           )}
         </button>
       </div>
