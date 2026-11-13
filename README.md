@@ -2,6 +2,8 @@
 
 StoryAI is an accessible bilingual storytelling platform designed for children, early readers, and special education learners. The application accepts prompt words through typing or microphone speech recognition, synthesizes structured educational narratives via Groq LLM inference, and formats the output side-by-side in English and Hindi. Integrated speech synthesis delivers clear neural audio narration and interactive sentence-by-sentence read-along highlighting, guiding children through pronunciation, sentence structure, and comprehension.
 
+![StoryAI Application Interface](docs/screenshots/app-overview.png)
+
 ---
 
 ## Table of Contents
@@ -365,11 +367,17 @@ The repository contains `vercel.json` configured for zero-configuration deployme
 
 ## Screenshots
 
+### Main Application Interface
+
+![StoryAI Application Interface](docs/screenshots/app-overview.png)
+
+*Figure 1: Full user interface displaying magic word prompt creation, theme adventure packs, and the story viewer.*
+
 ### Synchronized Read-Along Sentence Highlighting
 
 ![StoryAI Read-Along Sentence Highlighting](docs/screenshots/story-read-along.png)
 
-*Figure 1: Live read-along sentence tracking with synchronized yellow spotlight highlight during Hindi narration.*
+*Figure 2: Live read-along sentence tracking with synchronized yellow spotlight highlight during Hindi narration.*
 
 The interface highlights the active sentence with a warm yellow spotlight and synchronized speech synthesis progression, allowing young readers to follow word-by-word and sentence-by-sentence in both English and Hindi.
 
