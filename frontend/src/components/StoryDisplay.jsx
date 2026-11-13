@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { splitStorySentences } from '../hooks/useTTS';
 
 export default function StoryDisplay({
   story,
@@ -6,124 +7,202 @@ export default function StoryDisplay({
   onSpeak,
   speaking,
   speakLang,
-  ttsLoading
+  ttsLoading,
+  activeSentenceIndex,
+  speechRate,
+  onToggleRate
 }) {
   const [activeTab, setActiveTab] = useState('bilingual'); // 'bilingual' | 'en' | 'hi'
+
+  const englishSentences = useMemo(() => {
+    return splitStorySentences(story?.english || '', 'en');
+  }, [story?.english]);
+
+  const hindiSentences = useMemo(() => {
+    return splitStorySentences(story?.hindi || '', 'hi');
+  }, [story?.hindi]);
 
   if (!story) return null;
 
   const isSpeakingEn = speaking && speakLang === 'en';
   const isSpeakingHi = speaking && speakLang === 'hi';
-  const isEnLoading = ttsLoading && speakLang === 'en';
-  const isHiLoading = ttsLoading && speakLang === 'hi';
 
   return (
-    <article className="story-card">
-      <header className="story-header-bar">
-        <div className="story-meta-col">
-          <div className="story-tag-row">
-            {story.skillType && (
-              <span className="meta-badge badge-category">{story.skillType}</span>
-            )}
-            {story.skill && (
-              <span className="meta-badge badge-skill">{story.skill}</span>
-            )}
-            {Array.isArray(story.words) && story.words.length > 0 && (
-              <span className="meta-badge badge-words">
-                {story.words.join(' · ')}
-              </span>
-            )}
+    <article className="kid-card storybook-card">
+      {/* Story Header */}
+      <header className="storybook-header">
+        <div className="storybook-meta-left">
+          <div className="hero-emoji-circle" title="Main Character">
+            {story.emoji || '🌟'}
           </div>
-          <h2 className="story-display-title">
-            {story.title}
-          </h2>
+
+          <div className="meta-text-block">
+            <div className="meta-pills-row">
+              {story.skillType && (
+                <span className="kid-badge badge-skill-type">
+                  ⭐ {story.skillType}
+                </span>
+              )}
+              {story.skill && (
+                <span className="kid-badge badge-skill-name">
+                  🌱 {story.skill}
+                </span>
+              )}
+            </div>
+            <h2 className="storybook-title">{story.title}</h2>
+          </div>
         </div>
 
-        <div className="story-header-actions">
-          <div className="view-toggle" role="tablist" aria-label="Language view mode">
+        <div className="storybook-header-controls">
+          <div className="speed-toggle-control">
             <button
               type="button"
-              className={`toggle-tab ${activeTab === 'bilingual' ? 'active' : ''}`}
+              className="kid-speed-btn"
+              onClick={onToggleRate}
+              title="Change reading speed"
+            >
+              {speechRate <= 0.9 ? '🐢 Gentle Speed' : '🐇 Normal Speed'}
+            </button>
+          </div>
+
+          <div className="view-mode-tabs" role="tablist">
+            <button
+              type="button"
+              className={`mode-tab ${activeTab === 'bilingual' ? 'active' : ''}`}
               onClick={() => setActiveTab('bilingual')}
             >
-              Side by Side
+              📖 Both
             </button>
             <button
               type="button"
-              className={`toggle-tab ${activeTab === 'en' ? 'active' : ''}`}
+              className={`mode-tab ${activeTab === 'en' ? 'active' : ''}`}
               onClick={() => setActiveTab('en')}
             >
-              English
+              🇬🇧 English
             </button>
             <button
               type="button"
-              className={`toggle-tab ${activeTab === 'hi' ? 'active' : ''}`}
+              className={`mode-tab ${activeTab === 'hi' ? 'active' : ''}`}
               onClick={() => setActiveTab('hi')}
             >
-              हिंदी
+              🇮🇳 हिंदी
             </button>
           </div>
 
           <button
             type="button"
-            className="btn-outline-sm"
+            className="kid-btn-secondary"
             onClick={onNewStory}
           >
-            New Story
+            ✨ New Story
           </button>
         </div>
       </header>
 
-      <div className={`story-content-layout layout-${activeTab}`}>
+      {/* Interactive Helper Banner */}
+      <div className="kid-helper-tip">
+        <span>💡 Tip: Tap the Listen button or tap any sentence to hear it read aloud!</span>
+      </div>
+
+      {/* Story Text Panes */}
+      <div className={`storybook-panes layout-${activeTab}`}>
+        {/* English Pane */}
         {(activeTab === 'bilingual' || activeTab === 'en') && (
-          <section className="story-text-pane en-pane">
-            <div className="pane-header">
-              <span className="pane-lang-label">English</span>
+          <section className="story-pane english-pane">
+            <div className="pane-control-bar">
+              <span className="pane-lang-title">🇬🇧 English Story</span>
               <button
                 type="button"
-                className={`audio-btn ${isSpeakingEn ? 'playing' : ''}`}
+                className={`kid-audio-btn ${isSpeakingEn ? 'playing' : ''}`}
                 onClick={() => onSpeak(story.english || '', 'en')}
                 disabled={ttsLoading && !isSpeakingEn}
               >
-                <span className={`audio-dot ${isSpeakingEn ? 'pulse' : ''}`}></span>
-                {isEnLoading ? 'Loading Audio...' : isSpeakingEn ? 'Pause Narration' : 'Read Aloud'}
+                <span className="audio-icon">{isSpeakingEn ? '⏸️' : '🔊'}</span>
+                <span>
+                  {ttsLoading && speakLang === 'en'
+                    ? 'Loading Voice...'
+                    : isSpeakingEn
+                    ? 'Pause'
+                    : 'Listen in English'}
+                </span>
               </button>
             </div>
-            <p className="narrative-body en-text">
-              {story.english}
-            </p>
+
+            <div className="story-sentences-container">
+              {englishSentences.map((sentence, sIdx) => {
+                const isHighlight = isSpeakingEn && activeSentenceIndex === sIdx;
+                return (
+                  <span
+                    key={sIdx}
+                    className={`read-sentence ${isHighlight ? 'active-reading' : ''}`}
+                    onClick={() => onSpeak(story.english || '', 'en', sIdx)}
+                    title="Click to hear this sentence"
+                  >
+                    {sentence}{' '}
+                  </span>
+                );
+              })}
+            </div>
           </section>
         )}
 
+        {/* Hindi Pane */}
         {(activeTab === 'bilingual' || activeTab === 'hi') && (
-          <section className="story-text-pane hi-pane">
-            <div className="pane-header">
-              <span className="pane-lang-label">हिंदी अनुवाद (Hindi)</span>
+          <section className="story-pane hindi-pane">
+            <div className="pane-control-bar">
+              <span className="pane-lang-title">🇮🇳 हिंदी कहानी (Hindi)</span>
               <button
                 type="button"
-                className={`audio-btn ${isSpeakingHi ? 'playing' : ''}`}
+                className={`kid-audio-btn ${isSpeakingHi ? 'playing' : ''}`}
                 onClick={() => onSpeak(story.hindi || '', 'hi')}
                 disabled={ttsLoading && !isSpeakingHi}
               >
-                <span className={`audio-dot ${isSpeakingHi ? 'pulse' : ''}`}></span>
-                {isHiLoading ? 'लोड हो रहा है...' : isSpeakingHi ? 'रोकें' : 'सुनें (Listen)'}
+                <span className="audio-icon">{isSpeakingHi ? '⏸️' : '🔊'}</span>
+                <span>
+                  {ttsLoading && speakLang === 'hi'
+                    ? 'आवाज़ लोड हो रही है...'
+                    : isSpeakingHi
+                    ? 'रोकें (Pause)'
+                    : 'हिंदी में सुनें (Listen)'}
+                </span>
               </button>
             </div>
-            <p className="narrative-body hi-text">
-              {story.hindi}
-            </p>
+
+            <div className="story-sentences-container hindi-text">
+              {hindiSentences.map((sentence, sIdx) => {
+                const isHighlight = isSpeakingHi && activeSentenceIndex === sIdx;
+                return (
+                  <span
+                    key={sIdx}
+                    className={`read-sentence ${isHighlight ? 'active-reading' : ''}`}
+                    onClick={() => onSpeak(story.hindi || '', 'hi', sIdx)}
+                    title="इस वाक्य को सुनने के लिए क्लिक करें"
+                  >
+                    {sentence}{' '}
+                  </span>
+                );
+              })}
+            </div>
           </section>
         )}
       </div>
 
+      {/* Reflection Question Box */}
       {(story.question?.en || story.question?.hi) && (
-        <aside className="reflection-card">
-          <h3 className="reflection-title">Reflection Question</h3>
+        <aside className="kid-reflection-card">
+          <div className="reflection-header">
+            <span className="reflection-emoji">💭</span>
+            <h3 className="reflection-heading">Think & Share</h3>
+          </div>
           {story.question?.en && (
-            <p className="reflection-text en">{story.question.en}</p>
+            <p className="question-text english-question">
+              👉 {story.question.en}
+            </p>
           )}
           {story.question?.hi && (
-            <p className="reflection-text hi">{story.question.hi}</p>
+            <p className="question-text hindi-question">
+              👉 {story.question.hi}
+            </p>
           )}
         </aside>
       )}
