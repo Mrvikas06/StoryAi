@@ -1,35 +1,104 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 export default function useVoiceInput(onWords, onError) {
   const [listening, setListening] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
   const recRef = useRef(null);
 
-  const startListening = () => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) {
-      onError('Voice not supported. Please type!');
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      setIsSupported(Boolean(SpeechRecognition));
+    }
+  }, []);
+
+  const stopListening = useCallback(() => {
+    if (recRef.current) {
+      try {
+        recRef.current.stop();
+      } catch {
+        // ignore already stopped recognition
+      }
+    }
+    setListening(false);
+  }, []);
+
+  const startListening = useCallback((lang = 'en-US') => {
+    if (typeof window === 'undefined') return;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      if (onError) onError('Speech recognition is not supported in this browser.');
       return;
     }
-    const r = new SR();
-    r.lang = 'en-IN';
-    r.continuous = false;
-    r.interimResults = false;
-    r.onstart  = () => setListening(true);
-    r.onend    = () => setListening(false);
-    r.onerror  = () => { setListening(false); onError('Could not hear. Please type!'); };
-    r.onresult = (e) => {
-      const transcript = e.results[0][0].transcript;
-      const heard = transcript.split(/[\s,]+/).filter(Boolean).slice(0, 3);
-      onWords(heard);
+
+    try {
+      if (recRef.current) {
+        recRef.current.abort();
+      }
+
+      const recognition = new SpeechRecognition();
+      recognition.lang = lang;
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        setListening(true);
+      };
+
+      recognition.onend = () => {
+        setListening(false);
+      };
+
+      recognition.onerror = (event) => {
+        setListening(false);
+        if (event.error === 'no-speech') {
+          if (onError) onError('No speech detected. Please try speaking again.');
+        } else if (event.error === 'not-allowed') {
+          if (onError) onError('Microphone access was denied. Check browser permissions.');
+        } else if (onError) {
+          onError(`Voice input error: ${event.error}`);
+        }
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results?.[0]?.[0]?.transcript || '';
+        const parsedWords = transcript
+          .replace(/[^a-zA-Z0-9\u0900-\u097F\s]/g, ' ')
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, 3);
+
+        if (parsedWords.length > 0 && onWords) {
+          onWords(parsedWords);
+        }
+      };
+
+      recRef.current = recognition;
+      recognition.start();
+    } catch (err) {
+      setListening(false);
+      if (onError) onError(err.message || 'Unable to start microphone.');
+    }
+  }, [onError, onWords]);
+
+  useEffect(() => {
+    return () => {
+      if (recRef.current) {
+        try {
+          recRef.current.abort();
+        } catch {
+          // ignore cleanup abort
+        }
+      }
     };
-    recRef.current = r;
-    r.start();
-  };
+  }, []);
 
-  const stopListening = () => {
-    recRef.current?.stop();
-    setListening(false);
+  return {
+    listening,
+    isSupported,
+    startListening,
+    stopListening
   };
-
-  return { listening, startListening, stopListening };
 }
