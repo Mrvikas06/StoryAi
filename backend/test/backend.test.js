@@ -76,6 +76,11 @@ test('VOICES dictionary contains English and Hindi neural voices', () => {
   assert.ok(VOICES.hi.includes('Neural'));
 });
 
+test('synthesizeWebAudio handles Hindi text synthesis smoothly', async () => {
+  const buffer = await synthesizeWebAudio('नमस्ते नन्हे दोस्त!', 'hi');
+  assert.ok(buffer.length > 500);
+});
+
 test('GET /api/health responds with 200 ok', async () => {
   const server = http.createServer(app);
   await new Promise((resolve) => server.listen(0, resolve));
