@@ -4,3 +4,4 @@ compatibility_flags = ["nodejs_compat"]
 
 [site]
 bucket = "./frontend/dist"
+
