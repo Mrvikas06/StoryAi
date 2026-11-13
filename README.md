@@ -18,6 +18,7 @@ StoryAI is an accessible bilingual storytelling platform designed for children, 
 - [API Reference](#api-reference)
 - [Testing and Quality Assurance](#testing-and-quality-assurance)
 - [Deployment Options](#deployment-options)
+- [Screenshots](#screenshots)
 - [License](#license)
 
 ---
@@ -130,6 +131,8 @@ StoryAi/
 │   │   └── ttsService.js        # Audio chunking, synthesis, and garbage collection
 │   ├── package.json             # Backend dependencies and scripts
 │   └── server.js                # Standalone backend server entrypoint
+├── docs/                        # Project documentation and screenshots
+│   └── screenshots/             # Interface and read-along proof images
 ├── frontend/                    # React single-page application
 │   ├── public/                  # Static assets and redirect rules
 │   ├── src/
@@ -361,6 +364,14 @@ The repository contains `vercel.json` configured for zero-configuration deployme
 ---
 
 ## Screenshots
+
+### Synchronized Read-Along Sentence Highlighting
+
+![StoryAI Read-Along Sentence Highlighting](docs/screenshots/story-read-along.png)
+
+*Figure 1: Live read-along sentence tracking with synchronized yellow spotlight highlight during Hindi narration.*
+
+The interface highlights the active sentence with a warm yellow spotlight and synchronized speech synthesis progression, allowing young readers to follow word-by-word and sentence-by-sentence in both English and Hindi.
 
 ### Application Interface Layout
 
