@@ -913,6 +913,15 @@
   align-items: center;
   padding-bottom: 14px;
   border-bottom: 2px solid var(--border-card);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pane-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .pane-lang-title {
@@ -980,11 +989,35 @@
 }
 
 .read-sentence.active-reading {
-  background-color: #FEF08A;
+  background: linear-gradient(120deg, #FEF08A 0%, #FDE047 100%);
   color: #713F12;
-  box-shadow: 0 0 0 3px #FDE047, 0 2px 8px rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 0 3px #FBBF24, 0 4px 14px rgba(245, 158, 11, 0.35);
   font-weight: 700;
   border-radius: 8px;
+  animation: reading-pulse 2.2s infinite ease-in-out;
+}
+
+@keyframes reading-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px #FBBF24, 0 3px 10px rgba(245, 158, 11, 0.28);
+  }
+  50% {
+    box-shadow: 0 0 0 5px #F59E0B, 0 6px 18px rgba(245, 158, 11, 0.45);
+  }
+}
+
+.reading-progress-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: #FEF3C7;
+  color: #92400E;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 9999px;
+  border: 1px solid #FCD34D;
+  animation: fadeIn 0.2s ease-in;
 }
 
 /* Reflection Card */

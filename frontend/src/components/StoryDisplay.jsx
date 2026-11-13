@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { splitStorySentences, STORYTELLER_TONES } from '../hooks/useTTS';
 
 export default function StoryDisplay({
@@ -15,6 +15,7 @@ export default function StoryDisplay({
   onStopAudio
 }) {
   const [activeTab, setActiveTab] = useState('bilingual'); // 'bilingual' | 'en' | 'hi'
+  const cardRef = useRef(null);
 
   const englishSentences = useMemo(() => {
     return splitStorySentences(story?.english || '', 'en');
@@ -24,13 +25,27 @@ export default function StoryDisplay({
     return splitStorySentences(story?.hindi || '', 'hi');
   }, [story?.hindi]);
 
+  // Smoothly keep the active narrated sentence in view
+  useEffect(() => {
+    if (activeSentenceIndex >= 0 && cardRef.current) {
+      const activeEl = cardRef.current.querySelector('.read-sentence.active-reading');
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest'
+        });
+      }
+    }
+  }, [activeSentenceIndex]);
+
   if (!story) return null;
 
   const isSpeakingEn = speaking && speakLang === 'en';
   const isSpeakingHi = speaking && speakLang === 'hi';
 
   return (
-    <article className="kid-card storybook-card">
+    <article className="kid-card storybook-card" ref={cardRef}>
       {/* Story Header */}
       <header className="storybook-header">
         <div className="storybook-meta-left">
@@ -122,7 +137,14 @@ export default function StoryDisplay({
         {(activeTab === 'bilingual' || activeTab === 'en') && (
           <section className="story-pane english-pane">
             <div className="pane-control-bar">
-              <span className="pane-lang-title">🇬🇧 English Story</span>
+              <div className="pane-title-group">
+                <span className="pane-lang-title">🇬🇧 English Story</span>
+                {isSpeakingEn && activeSentenceIndex >= 0 && (
+                  <span className="reading-progress-pill">
+                    ⭐ Sentence {activeSentenceIndex + 1} of {englishSentences.length}
+                  </span>
+                )}
+              </div>
               <div className="audio-actions-group">
                 <button
                   type="button"
@@ -182,7 +204,14 @@ export default function StoryDisplay({
         {(activeTab === 'bilingual' || activeTab === 'hi') && (
           <section className="story-pane hindi-pane">
             <div className="pane-control-bar">
-              <span className="pane-lang-title">🇮🇳 हिंदी कहानी (Hindi)</span>
+              <div className="pane-title-group">
+                <span className="pane-lang-title">🇮🇳 हिंदी कहानी (Hindi)</span>
+                {isSpeakingHi && activeSentenceIndex >= 0 && (
+                  <span className="reading-progress-pill">
+                    ⭐ वाक्य {activeSentenceIndex + 1} / {hindiSentences.length}
+                  </span>
+                )}
+              </div>
               <div className="audio-actions-group">
                 <button
                   type="button"
