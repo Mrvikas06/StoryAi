@@ -1,6 +1,6 @@
 # StoryAI
 
-StoryAI is a bilingual storytelling platform designed for children and early language learners. The application accepts prompt words via text or voice input, constructs emotionally engaging narratives using Groq LLM inference, and presents the resulting story side-by-side in English and Hindi. Integrated speech synthesis enables children to listen to natural narrations in either language, reinforcing vocabulary acquisition, comprehension, and real-life emotional skills.
+StoryAI is an accessible bilingual storytelling platform designed for children, early readers, and special education learners. The application accepts prompt words through typing or microphone speech recognition, synthesizes structured educational narratives via Groq LLM inference, and formats the output side-by-side in English and Hindi. Integrated speech synthesis delivers clear neural audio narration and interactive sentence-by-sentence read-along highlighting, guiding children through pronunciation, sentence structure, and comprehension.
 
 ---
 
@@ -24,26 +24,28 @@ StoryAI is a bilingual storytelling platform designed for children and early lan
 
 ## Overview
 
-StoryAI combines generative language models with assistive speech technology to deliver accessible reading experiences. When given a set of simple prompt words, the system constructs a cohesive narrative centered around relatable life skills (such as problem solving, regulating emotions, asking for help, or taking turns).
+StoryAI combines generative language models with assistive speech technology to create personalized, encouraging reading material. When supplied with up to three prompt words, the system constructs a narrative centered around essential developmental skills such as emotional regulation, cooperation, task focus, or seeking help.
 
-Each story includes:
-1. A creative title and thematic classification.
-2. An English narrative composed of sensory, accessible sentences.
-3. A conversational Hindi translation tailored for young comprehension.
-4. An interactive reflection question connecting the theme to the child's daily life.
-5. Neural text-to-speech audio with seamless browser synthesis fallback.
+Each generated story features:
+1. Title, character emoji identifier, and developmental skill classification.
+2. English narrative paragraph structured with accessible vocabulary and sensory descriptions.
+3. Natural, conversational Hindi translation aligned with young comprehension.
+4. Interactive reflection question linking the narrative theme to personal experience.
+5. Audio narration engine with sentence-by-sentence visual read-along tracking and adjustable playback speed.
 
 ---
 
 ## Key Features
 
-- **Bilingual Story Generation**: Real-time generation of matched English and Hindi narrative texts based on one to three word prompts.
-- **Life Skill Integration**: Stories organically teach practical skills such as emotional regulation, safety awareness, communication, and cooperation.
-- **Multimodal Input**: Supports both standard keyboard input and browser SpeechRecognition voice entry.
-- **Dual-Layer Audio Narration**: Primary audio generated via Microsoft Edge neural voices (`en-US-AriaNeural`, `hi-IN-MadhurNeural`) with zero-latency client-side Web Speech API fallback.
-- **Flexible Reading Layouts**: Configurable reading modes: side-by-side comparison, English-only, or Hindi-only reading views.
-- **Local Persistence & History Drawer**: Stores generated stories in browser local storage and supports persistent backend storage via MongoDB.
-- **Resilient Fallback Mode**: Built-in deterministic story engine generates full bilingual narratives even when third-party AI APIs or databases are temporarily unreachable.
+- **Child-Centered User Experience**: Warm, tactile storybook design utilizing high-legibility rounded typography (Nunito, Quicksand) with high contrast and generous line spacing.
+- **Bilingual Story Generation**: Concurrent generation of English and Hindi narratives mapped to specific life skills.
+- **Interactive Sentence Read-Along**: Visual spotlight tracking highlights each sentence as it is spoken, assisting reading pacing and comprehension.
+- **Sentence-Level Audio Interaction**: Children can tap any individual sentence in English or Hindi to listen to its pronunciation on demand.
+- **Adjustable Speech Rate**: Dual-mode playback offering gentle learning pacing (0.85x) and standard narrative pacing (1.0x).
+- **Multi-Tier Audio Architecture**: Primary MP3 audio stream synthesized via Google Speech endpoint with zero-latency browser Web Speech API fallback.
+- **Multimodal Prompting**: Accepts typed entries, quick adventure theme packs, or spoken voice input via browser SpeechRecognition.
+- **Local Bookshelf Drawer**: Stores generated stories in local storage with instant recall and deletion controls.
+- **Zero-Dependency Fallback Engine**: Deterministic narrative generation ensures stories generate even without internet or API keys.
 
 ---
 
@@ -52,16 +54,17 @@ Each story includes:
 ### Frontend
 - **Framework**: React 19
 - **Build Tool**: Vite 8
-- **Styling**: Vanilla CSS adhering to a strict 4px design scale and editorial typography
+- **Typography**: Nunito, Quicksand
+- **Styling**: Vanilla CSS with strict 4px spacing scale and responsive storybook cards
+- **Audio & Voice APIs**: Web Speech API (`SpeechRecognition`, `SpeechSynthesis`), HTMLAudioElement, Blob API
 - **HTTP Client**: Axios
-- **Web APIs**: Web Speech API (`SpeechRecognition`, `SpeechSynthesis`), HTMLAudioElement, Blob API
 
 ### Backend & Serverless
 - **Runtime**: Node.js (v18.0.0 or higher)
 - **Web Framework**: Express 5 / Express 4
 - **AI Inference**: Groq SDK (`llama-3.3-70b-versatile`)
-- **Speech Synthesis**: `msedge-tts` (Microsoft Edge neural TTS stream)
-- **Database (Optional)**: MongoDB via Mongoose
+- **Speech Synthesis Engine**: Multi-tier audio streamer with automatic clause chunking
+- **Database (Optional)**: MongoDB Atlas via Mongoose
 - **Deployment Handlers**: Vercel Serverless Functions, Render Web Service, Cloudflare Pages
 
 ---
@@ -72,7 +75,8 @@ Each story includes:
 +-------------------------------------------------------------------+
 |                        Client Application                         |
 |  - React 19 + Vite Frontend                                       |
-|  - SpeechRecognition (Voice Input) & SpeechSynthesis (Audio Play) |
+|  - Sentence Read-Along Highlighter & Adjustable Speed (0.85x/1.0x)|
+|  - SpeechRecognition (Voice Input) & SpeechSynthesis Fallback     |
 |  - Local Storage Story Library                                    |
 +---------------------------------+---------------------------------+
                                   |
@@ -81,15 +85,15 @@ Each story includes:
 +-------------------------------------------------------------------+
 |                     Backend Server / API Gateway                  |
 |  - Express Server / Vercel Serverless Functions                   |
-|  - Health Monitoring & Input Sanitization                         |
+|  - Dynamic CORS & Pre-Deployment Verification                     |
 +-----------------+-------------------------------+-----------------+
                   |                               |
                   v                               v
     +---------------------------+   +---------------------------+
-    |   Groq LLM Inference      |   |   Edge Speech Synthesis   |
-    |  - llama-3.3-70b          |   |  - en-US-AriaNeural       |
-    |  - Structured Story Prompts|  |  - hi-IN-MadhurNeural     |
-    |  - Local Fallback Engine  |   |  - Temp File Stream & Purge|
+    |   Groq LLM Inference      |   |   Audio Synthesis Stream  |
+    |  - llama-3.3-70b          |   |  - Automatic Clause Split |
+    |  - Structured Prompts     |   |  - Google Speech Stream   |
+    |  - Local Fallback Engine  |   |  - Automated Temp Cleanup |
     +-------------+-------------+   +---------------------------+
                   |
                   v (Optional)
@@ -118,27 +122,26 @@ StoryAi/
 │   ├── routes/
 │   │   ├── stories.js           # Story history retrieval and deletion
 │   │   ├── story.js             # Groq prompting, parsing, and fallback engine
-│   │   └── tts.js               # Neural audio streaming and file cleanup
+│   │   └── tts.js               # Audio streaming and file cleanup
 │   ├── temp/                    # Temporary audio storage directory
 │   ├── test/
 │   │   └── backend.test.js      # Automated unit and integration test suite
 │   ├── utils/
-│   │   └── ttsService.js        # Edge TTS wrapper and garbage collection
+│   │   └── ttsService.js        # Audio chunking, synthesis, and garbage collection
 │   ├── package.json             # Backend dependencies and scripts
 │   └── server.js                # Standalone backend server entrypoint
 ├── frontend/                    # React single-page application
 │   ├── public/                  # Static assets and redirect rules
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── StoryDisplay.jsx # Bilingual reader and audio player component
-│   │   │   └── WordInput.jsx    # Prompt input, voice capture, and suggestions
+│   │   │   ├── StoryDisplay.jsx # Interactive storybook with sentence highlighter
+│   │   │   └── WordInput.jsx    # Kid-friendly prompt builder and voice input
 │   │   ├── hooks/
-│   │   │   ├── useTTS.js        # Audio synthesis and browser speech fallback hook
+│   │   │   ├── useTTS.js        # Read-along sentence tracking and audio engine
 │   │   │   └── useVoiceInput.js # Microphone speech recognition hook
 │   │   ├── api.js               # Centralized Axios client interface
-│   │   ├── App.css              # Design system and layout stylesheet
-│   │   ├── App.jsx              # Application state and root shell
-│   │   ├── index.css            # Global typography and base CSS rules
+│   │   ├── App.css              # Kid-friendly storybook styling
+│   │   ├── index.css            # Global Nunito/Quicksand typography setup
 │   │   └── main.jsx             # React DOM entrypoint
 │   ├── package.json             # Frontend dependencies and scripts
 │   └── vite.config.js           # Vite development and production configuration
@@ -255,7 +258,7 @@ Access the unified service at `http://localhost:4000`.
 - **Body**:
   ```json
   {
-    "words": ["dragon", "lantern", "friendship"],
+    "words": ["puppy", "rainbow", "picnic"],
     "childId": "guest"
   }
   ```
@@ -265,17 +268,17 @@ Access the unified service at `http://localhost:4000`.
     "success": true,
     "story": {
       "_id": "story_1731519900_abcde",
-      "title": "Dragon and the Gentle Adventure",
+      "title": "Puppy and the Gentle Adventure",
       "emoji": "🌟",
       "skillType": "Emotions & Feelings",
       "skill": "Calming Down and Taking Deep Breaths",
-      "english": "One bright morning, Leo packed his bag with a dragon and stepped outside...",
+      "english": "One bright morning, Leo packed his bag with a puppy and stepped outside...",
       "hindi": "एक सुनहरी सुबह, लियो ने अपना बैग तैयार किया और बाहर की ओर कदम बढ़ाया...",
       "question": {
         "en": "When was a time you took a deep breath to feel calm and brave?",
         "hi": "आपने पिछली बार शांत और मजबूत महसूस करने के लिए गहरी सांस कब ली थी?"
       },
-      "words": ["dragon", "lantern", "friendship"],
+      "words": ["puppy", "rainbow", "picnic"],
       "childId": "guest",
       "createdAt": "2026-11-13T17:45:00.000Z"
     }
@@ -289,7 +292,7 @@ Access the unified service at `http://localhost:4000`.
 - **Body**:
   ```json
   {
-    "text": "Hello little explorer",
+    "text": "Welcome to story time, little explorer!",
     "lang": "en"
   }
   ```
@@ -314,7 +317,7 @@ Access the unified service at `http://localhost:4000`.
 
 ## Testing and Quality Assurance
 
-Run the automated test suite across prompt generation, story parsing, fallback behavior, audio sanitization, and HTTP routes:
+Execute the automated test suite covering prompt construction, structured parsing, fallback behavior, audio clause splitting, and live streaming endpoints:
 
 ```bash
 npm test
@@ -325,8 +328,10 @@ npm test
 - Structured plain-text parsing into English, Hindi, and question fields
 - Fallback narrative generation under missing API credentials
 - Emoji stripping for audio streaming compatibility
+- Text clause chunking for long narrations
+- Binary MP3 synthesis verification
 - Temporary file management and cleanup
-- Route responses for health checks and story generation
+- Route responses for health checks, story generation, and speech synthesis
 
 ---
 
@@ -361,38 +366,38 @@ The repository contains `vercel.json` configured for zero-configuration deployme
 
 ```
 +-------------------------------------------------------------------------------+
-|  StoryAI  [Bilingual Reader]                           [Saved Stories (3)]    |
+|  StoryAI  [Magic Storybook]                             [My Stories (3)]      |
 +-------------------------------------------------------------------------------+
 |                                                                               |
 |  +-------------------------------------------------------------------------+  |
-|  | Story Prompt Words                                                      |  |
-|  | Enter up to three words or speak into your microphone.  [Voice Input]   |  |
+|  | What is your story about?                                               |  |
+|  | Type or speak up to 3 fun words!                         [Speak Words]  |  |
 |  |                                                                         |  |
-|  | [ Word 1: Dragon     ]  [ Word 2: Compass    ]  [ Word 3: Mountain   ]  |  |
+|  | [ Word 1: Puppy      ]  [ Word 2: Rainbow     ]  [ Word 3: Picnic     ] |  |
 |  |                                                                         |  |
-|  | Try ideas: [Dragon · Compass · Mountain] [Garden · River · Friendship]  |  |
+|  | Quick Adventure Packs: [Playful Animals] [Space Quest] [Magic Kingdom]  |  |
 |  |                                                                         |  |
-|  |                                                     [Generate Story]    |  |
+|  |                                                [Create My Storybook!]   |  |
 |  +-------------------------------------------------------------------------+  |
 |                                                                               |
 |  +-------------------------------------------------------------------------+  |
-|  | [Emotions & Feelings] [Calming Down] [Dragon · Compass · Mountain]      |  |
-|  | Dragon and the Gentle Adventure                                         |  |
-|  | View: [Side by Side] [English] [Hindi]                     [New Story]  |  |
+|  | (*) Puppy and the Gentle Adventure       [Gentle Speed] [Both] [English]|  |
+|  | [* Emotions & Feelings] [Calming Down]                     [New Story]  |  |
 |  |-------------------------------------------------------------------------|  |
-|  | English                        [Read Aloud] | Hindi           [Listen]  |  |
-|  |                                             |                           |  |
-|  | One bright morning, Leo packed his bag with | एक सुनहरी सुबह, लियो ने    |  |
-|  | a dragon and stepped outside. The gentle    | अपना बैग तैयार किया और    |  |
-|  | breeze rustled through the tall green trees.| बाहर की ओर कदम बढ़ाया।    |  |
+|  | English Story            [Listen] | Hindi Story                [Listen] |  |
+|  |                                   |                                     |  |
+|  | [One bright morning, Leo packed]  | [एक सुनहरी सुबह, लियो ने अपना बैग]  |  |
+|  | [his bag with a puppy and stepped]| [तैयार किया और बाहर की ओर बढ़ा।]    |  |
+|  |                                   |                                     |  |
+|  | (Active sentence glows in yellow as the story is read aloud)            |  |
 |  |-------------------------------------------------------------------------|  |
-|  | REFLECTION QUESTION                                                     |  |
-|  | When was a time you took a deep breath to feel calm and brave?           |  |
-|  | आपने पिछली बार शांत और मजबूत महसूस करने के लिए गहरी सांस कब ली थी?       |  |
+|  | THINK & SHARE                                                           |  |
+|  | When was a time you took a deep breath to feel calm and brave?          |  |
+|  | आपने पिछली बार शांत और मजबूत महसूस करने के लिए गहरी सांस कब ली थी?      |  |
 |  +-------------------------------------------------------------------------+  |
 |                                                                               |
 +-------------------------------------------------------------------------------+
-|  StoryAI — Bilingual storytelling and audio narration for young readers.     |
+|  StoryAI — Joyful bilingual stories and read-along narration for young readers|
 +-------------------------------------------------------------------------------+
 ```
 
