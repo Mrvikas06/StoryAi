@@ -4,7 +4,7 @@ const http = require('node:http');
 
 const { buildPrompt, parseStory, generateLocalStory } = require('../routes/story');
 const { stripEmoji } = require('../routes/tts');
-const { cleanOldTempFiles, VOICES } = require('../utils/ttsService');
+const { cleanOldTempFiles, splitIntoChunks, synthesizeWebAudio, VOICES } = require('../utils/ttsService');
 const app = require('../server');
 
 test('buildPrompt includes all supplied words', () => {
@@ -53,6 +53,18 @@ test('stripEmoji removes emoji and special symbols for clean TTS', () => {
   assert.strictEqual(cleaned, 'Hello little star and cute bear !');
 });
 
+test('splitIntoChunks partitions long text into readable segments', () => {
+  const text = 'First sentence here. Second sentence follows. Third sentence wraps up!';
+  const chunks = splitIntoChunks(text, 'en');
+  assert.ok(chunks.length >= 3);
+  assert.ok(chunks[0].includes('First'));
+});
+
+test('synthesizeWebAudio produces valid MP3 audio buffers', async () => {
+  const buffer = await synthesizeWebAudio('Hello brave friend!', 'en');
+  assert.ok(buffer.length > 500);
+});
+
 test('cleanOldTempFiles runs safely without exceptions', () => {
   assert.doesNotThrow(() => {
     cleanOldTempFiles();
@@ -97,6 +109,27 @@ test('POST /api/story/generate returns generated story with fallback', async () 
     assert.ok(data.story.title);
     assert.ok(data.story.english);
     assert.ok(data.story.hindi);
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /api/tts/speak streams audio mpeg response', async () => {
+  const server = http.createServer(app);
+  await new Promise((resolve) => server.listen(0, resolve));
+  const port = server.address().port;
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/api/tts/speak`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: 'Welcome to story time!', lang: 'en' })
+    });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(res.headers.get('content-type'), 'audio/mpeg');
+    const audioData = await res.arrayBuffer();
+    assert.ok(audioData.byteLength > 500);
   } finally {
     server.close();
   }
