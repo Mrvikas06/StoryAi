@@ -17,13 +17,14 @@ export default function App() {
   const storySectionRef = useRef(null);
   const {
     speaking,
+    paused,
     speakLang,
     loading: ttsLoading,
-    speechRate,
     activeSentenceIndex,
+    selectedTone,
+    setSelectedTone,
     speak,
-    stopAudio,
-    toggleRate
+    stopAudio
   } = useTTS();
 
   useEffect(() => {
@@ -227,11 +228,13 @@ export default function App() {
               onNewStory={handleNewStory}
               onSpeak={speak}
               speaking={speaking}
+              paused={paused}
               speakLang={speakLang}
               ttsLoading={ttsLoading}
               activeSentenceIndex={activeSentenceIndex}
-              speechRate={speechRate}
-              onToggleRate={toggleRate}
+              selectedTone={selectedTone}
+              onSelectTone={setSelectedTone}
+              onStopAudio={stopAudio}
             />
           </div>
         </div>

@@ -1,16 +1,18 @@
 import { useState, useMemo } from 'react';
-import { splitStorySentences } from '../hooks/useTTS';
+import { splitStorySentences, STORYTELLER_TONES } from '../hooks/useTTS';
 
 export default function StoryDisplay({
   story,
   onNewStory,
   onSpeak,
   speaking,
+  paused,
   speakLang,
   ttsLoading,
   activeSentenceIndex,
-  speechRate,
-  onToggleRate
+  selectedTone,
+  onSelectTone,
+  onStopAudio
 }) {
   const [activeTab, setActiveTab] = useState('bilingual'); // 'bilingual' | 'en' | 'hi'
 
@@ -32,7 +34,7 @@ export default function StoryDisplay({
       {/* Story Header */}
       <header className="storybook-header">
         <div className="storybook-meta-left">
-          <div className="hero-emoji-circle" title="Main Character">
+          <div className="hero-emoji-circle" title="Story Character">
             {story.emoji || '🌟'}
           </div>
 
@@ -54,17 +56,6 @@ export default function StoryDisplay({
         </div>
 
         <div className="storybook-header-controls">
-          <div className="speed-toggle-control">
-            <button
-              type="button"
-              className="kid-speed-btn"
-              onClick={onToggleRate}
-              title="Change reading speed"
-            >
-              {speechRate <= 0.9 ? '🐢 Gentle Speed' : '🐇 Normal Speed'}
-            </button>
-          </div>
-
           <div className="view-mode-tabs" role="tablist">
             <button
               type="button"
@@ -99,9 +90,30 @@ export default function StoryDisplay({
         </div>
       </header>
 
+      {/* Storyteller Voice Tone Bar */}
+      <div className="storyteller-bar">
+        <div className="tone-label-group">
+          <span className="tone-bar-title">🎙️ Storyteller Voice:</span>
+        </div>
+        <div className="tone-chips-group">
+          {Object.values(STORYTELLER_TONES).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              className={`tone-pill-btn ${selectedTone === t.id ? 'active' : ''}`}
+              onClick={() => onSelectTone && onSelectTone(t.id)}
+              title={t.description}
+            >
+              <span className="tone-emoji">{t.emoji}</span>
+              <span className="tone-name">{t.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Interactive Helper Banner */}
       <div className="kid-helper-tip">
-        <span>💡 Tip: Tap the Listen button or tap any sentence to hear it read aloud!</span>
+        <span>💡 Tap "Listen" to hear natural storytelling, or tap any sentence to practice reading it!</span>
       </div>
 
       {/* Story Text Panes */}
@@ -111,21 +123,41 @@ export default function StoryDisplay({
           <section className="story-pane english-pane">
             <div className="pane-control-bar">
               <span className="pane-lang-title">🇬🇧 English Story</span>
-              <button
-                type="button"
-                className={`kid-audio-btn ${isSpeakingEn ? 'playing' : ''}`}
-                onClick={() => onSpeak(story.english || '', 'en')}
-                disabled={ttsLoading && !isSpeakingEn}
-              >
-                <span className="audio-icon">{isSpeakingEn ? '⏸️' : '🔊'}</span>
-                <span>
-                  {ttsLoading && speakLang === 'en'
-                    ? 'Loading Voice...'
-                    : isSpeakingEn
-                    ? 'Pause'
-                    : 'Listen in English'}
-                </span>
-              </button>
+              <div className="audio-actions-group">
+                <button
+                  type="button"
+                  className={`kid-audio-btn ${isSpeakingEn ? 'playing' : ''}`}
+                  onClick={() => onSpeak(story.english || '', 'en')}
+                  disabled={ttsLoading && !isSpeakingEn}
+                >
+                  <span className="audio-icon">{isSpeakingEn ? (paused ? '▶️' : '⏸️') : '🔊'}</span>
+                  <span>
+                    {ttsLoading && speakLang === 'en'
+                      ? 'Starting Voice...'
+                      : isSpeakingEn
+                      ? (paused ? 'Resume' : 'Pause')
+                      : 'Listen in English'}
+                  </span>
+                  {isSpeakingEn && !paused && (
+                    <span className="sound-wave-bars">
+                      <span className="bar b1"></span>
+                      <span className="bar b2"></span>
+                      <span className="bar b3"></span>
+                    </span>
+                  )}
+                </button>
+
+                {isSpeakingEn && (
+                  <button
+                    type="button"
+                    className="kid-stop-btn"
+                    onClick={onStopAudio}
+                    title="Stop audio"
+                  >
+                    ⏹️ Stop
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="story-sentences-container">
@@ -136,7 +168,7 @@ export default function StoryDisplay({
                     key={sIdx}
                     className={`read-sentence ${isHighlight ? 'active-reading' : ''}`}
                     onClick={() => onSpeak(story.english || '', 'en', sIdx)}
-                    title="Click to hear this sentence"
+                    title="Tap to hear this sentence"
                   >
                     {sentence}{' '}
                   </span>
@@ -151,21 +183,41 @@ export default function StoryDisplay({
           <section className="story-pane hindi-pane">
             <div className="pane-control-bar">
               <span className="pane-lang-title">🇮🇳 हिंदी कहानी (Hindi)</span>
-              <button
-                type="button"
-                className={`kid-audio-btn ${isSpeakingHi ? 'playing' : ''}`}
-                onClick={() => onSpeak(story.hindi || '', 'hi')}
-                disabled={ttsLoading && !isSpeakingHi}
-              >
-                <span className="audio-icon">{isSpeakingHi ? '⏸️' : '🔊'}</span>
-                <span>
-                  {ttsLoading && speakLang === 'hi'
-                    ? 'आवाज़ लोड हो रही है...'
-                    : isSpeakingHi
-                    ? 'रोकें (Pause)'
-                    : 'हिंदी में सुनें (Listen)'}
-                </span>
-              </button>
+              <div className="audio-actions-group">
+                <button
+                  type="button"
+                  className={`kid-audio-btn ${isSpeakingHi ? 'playing' : ''}`}
+                  onClick={() => onSpeak(story.hindi || '', 'hi')}
+                  disabled={ttsLoading && !isSpeakingHi}
+                >
+                  <span className="audio-icon">{isSpeakingHi ? (paused ? '▶️' : '⏸️') : '🔊'}</span>
+                  <span>
+                    {ttsLoading && speakLang === 'hi'
+                      ? 'आवाज़ शुरू हो रही है...'
+                      : isSpeakingHi
+                      ? (paused ? 'पुनः शुरू करें' : 'रोकें')
+                      : 'हिंदी में सुनें (Listen)'}
+                  </span>
+                  {isSpeakingHi && !paused && (
+                    <span className="sound-wave-bars">
+                      <span className="bar b1"></span>
+                      <span className="bar b2"></span>
+                      <span className="bar b3"></span>
+                    </span>
+                  )}
+                </button>
+
+                {isSpeakingHi && (
+                  <button
+                    type="button"
+                    className="kid-stop-btn"
+                    onClick={onStopAudio}
+                    title="Stop audio"
+                  >
+                    ⏹️ Stop
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="story-sentences-container hindi-text">
