@@ -3,48 +3,50 @@ globalThis.crypto = webcrypto;
 
 require("dotenv").config();
 
-console.log("🔧 Backend starting...");
-console.log("Environment:", {
-    NODE_ENV: process.env.NODE_ENV,
-    hasGroqKey: !!process.env.GROQ_API_KEY,
-    hasMongoDB: !!process.env.MONGODB_URI
-});
-
 const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
 
 const app = express();
 
-// ✅ CORS - manual, single, no conflicts
-app.use((req, res, next) => {
-    const allowedOrigins = [
-        "https://storyai-8gn.pages.dev",
-        "http://localhost:3000",
-        "http://localhost:5173"
-    ];
-    const origin = req.headers.origin;
-    if (allowedOrigins.includes(origin)) {
-        res.setHeader("Access-Control-Allow-Origin", origin);
-    }
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.setHeader("Access-Control-Allow-Credentials", "true");
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  "http://127.0.0.1:3000",
+  "http://127.0.0.1:5173",
+  "https://storyai-8gn.pages.dev",
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(s => s.trim()) : []),
+  process.env.RENDER_EXTERNAL_URL,
+  process.env.CLIENT_ORIGIN
+].filter(Boolean);
 
-    if (req.method === "OPTIONS") {
-        return res.sendStatus(200);
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith('.pages.dev') ||
+      origin.endsWith('.vercel.app') ||
+      origin.endsWith('.onrender.com')
+    ) {
+      return callback(null, true);
     }
-    next();
-});
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.use(express.json());
 
 // MongoDB
 if (process.env.MONGODB_URI) {
-    mongoose.connect(process.env.MONGODB_URI)
-        .then(() => console.log("✅ MongoDB Connected"))
-        .catch((err) => console.warn("⚠️ MongoDB Warning:", err.message));
+  mongoose.connect(process.env.MONGODB_URI)
+    .then(() => console.log("MongoDB Connected"))
+    .catch((err) => console.warn("MongoDB Warning:", err.message));
 } else {
-    console.log("⚠️ MongoDB URI not configured - running in demo mode");
+  console.log("MongoDB URI not configured - running in demo mode");
 }
 
 // Routes
@@ -59,13 +61,18 @@ app.use("/api/stories", storiesRoute);
 
 // Health check
 app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", message: "Server is running" });
+  res.json({
+    status: "ok",
+    message: "Server is running",
+    timestamp: new Date().toISOString()
+  });
 });
 
-// Start server
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-    console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
 
 module.exports = app;
