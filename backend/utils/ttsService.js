@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs');
 
 const VOICES = {
-  en: 'en-US-AriaNeural',
+  en: 'en-GB-SoniaNeural',
   hi: 'hi-IN-MadhurNeural'
 };
 
@@ -37,7 +37,10 @@ function cleanOldTempFiles() {
  * Split text into chunks suitable for TTS (under 180 chars per clause)
  */
 function splitIntoChunks(text, lang = 'en') {
-  const delimiter = lang === 'hi' ? /([^।!?,]+[।!?,]+|[^।!?,]+$)/g : /([^.!?:]+[.!?:]+|[^.!?:]+$)/g;
+  const isHindi = lang === 'hi' || lang === 'hi-IN' || /[\u0900-\u097F]/.test(text);
+  const delimiter = isHindi
+    ? /([^।!?.,\n]+[।!?.,\n]+|[^।!?.,\n]+$)/g
+    : /([^.!?:\n]+[.!?:\n]+|[^.!?:\n]+$)/g;
   const rawChunks = text.match(delimiter) || [text];
   const result = [];
 
@@ -68,9 +71,11 @@ function splitIntoChunks(text, lang = 'en') {
 
 /**
  * Synthesize speech buffer using Google Translate TTS API
+ * Using 'en-gb' for proper English storytelling and 'hi' for authentic Indian Hindi accent
  */
 async function synthesizeWebAudio(text, lang = 'en') {
-  const langCode = lang === 'hi' ? 'hi' : 'en';
+  const isHindi = lang === 'hi' || lang === 'hi-IN' || /[\u0900-\u097F]/.test(text);
+  const langCode = isHindi ? 'hi' : 'en-gb';
   const chunks = splitIntoChunks(text, lang);
   const buffers = [];
 
@@ -78,7 +83,7 @@ async function synthesizeWebAudio(text, lang = 'en') {
     const url = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${langCode}&client=tw-ob&q=${encodeURIComponent(chunk)}`;
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Referer': 'https://translate.google.com/'
       }
     });
