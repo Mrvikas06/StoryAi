@@ -37,6 +37,108 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+/* Background Decorations Container */
+.bg-decorations-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.doodle-item {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+}
+
+@keyframes doodleFloatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(2deg); }
+}
+
+@keyframes doodleFloatMedium {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(-3deg); }
+}
+
+@keyframes doodleTwinkle {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.18); opacity: 1; }
+}
+
+.doodle-sun {
+  top: 15px;
+  left: 15px;
+  animation: doodleFloatSlow 8s ease-in-out infinite;
+}
+
+.doodle-cloud-1 {
+  top: 50px;
+  left: 95px;
+  animation: doodleFloatMedium 10s ease-in-out infinite 1s;
+}
+
+.doodle-balloon {
+  top: 40px;
+  right: 40px;
+  animation: doodleFloatSlow 7s ease-in-out infinite 0.5s;
+}
+
+.doodle-rocket {
+  top: 320px;
+  left: 30px;
+  animation: doodleFloatMedium 9s ease-in-out infinite 1.5s;
+}
+
+.doodle-planet {
+  top: 440px;
+  left: 45px;
+  animation: doodleFloatSlow 11s ease-in-out infinite;
+}
+
+.doodle-rainbow {
+  top: 300px;
+  right: 25px;
+  animation: doodleFloatSlow 12s ease-in-out infinite 2s;
+}
+
+.doodle-star-1 {
+  top: 180px;
+  left: 200px;
+  animation: doodleTwinkle 4s ease-in-out infinite;
+}
+
+.doodle-star-2 {
+  top: 220px;
+  right: 180px;
+  animation: doodleTwinkle 5s ease-in-out infinite 1.2s;
+}
+
+.doodle-star-3 {
+  bottom: 220px;
+  right: 70px;
+  animation: doodleTwinkle 4.5s ease-in-out infinite 2.5s;
+}
+
+.doodle-book {
+  bottom: 80px;
+  left: 40px;
+  animation: doodleFloatSlow 8s ease-in-out infinite 1s;
+}
+
+.doodle-airplane {
+  bottom: 110px;
+  right: 45px;
+  animation: doodleFloatMedium 6.5s ease-in-out infinite 0.8s;
+}
+
+.main-viewport, .app-header, .app-footer, .history-drawer {
+  position: relative;
+  z-index: 10;
 }
 
 /* Header */
