@@ -54,6 +54,9 @@ app.use("/api/tts", ttsRoute);
 const storyRoute = require("./routes/story");
 app.use("/api/story", storyRoute);
 
+const storiesRoute = require("./routes/stories");
+app.use("/api/stories", storiesRoute);
+
 // Health check
 app.get("/api/health", (req, res) => {
     res.json({ status: "ok", message: "Server is running" });

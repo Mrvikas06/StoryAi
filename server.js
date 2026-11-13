@@ -59,9 +59,11 @@ if (process.env.MONGODB_URI) {
 try {
     const ttsRoute = require("./backend/routes/tts");
     const storyRoute = require("./backend/routes/story");
+    const storiesRoute = require("./backend/routes/stories");
 
     app.use("/api/tts", ttsRoute);
     app.use("/api/story", storyRoute);
+    app.use("/api/stories", storiesRoute);
     console.log("✅ API routes loaded");
 } catch (err) {
     console.error("❌ Error loading routes:", err.message);
