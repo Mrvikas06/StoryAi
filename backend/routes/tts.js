@@ -12,65 +12,66 @@ function stripEmoji(text) {
 }
 
 router.post('/speak', async (req, res) => {
-  const { text, lang = 'en' } = req.body;
-  
+  const { text, lang = 'en' } = req.body || {};
+
   if (!text) {
     return res.status(400).json({ error: 'No text provided' });
   }
 
+  let generatedFile = null;
+
+  const cleanup = () => {
+    if (generatedFile && fs.existsSync(generatedFile)) {
+      fs.unlink(generatedFile, () => {});
+      generatedFile = null;
+    }
+  };
+
   try {
     const clean = stripEmoji(text).substring(0, 3000);
-    console.log('🎤 TTS Request:', { lang, chars: clean.length });
-
     const { filePath, fileName } = await generateTTS(clean, lang);
-    
-    // Verify file exists and has content
+    generatedFile = filePath;
+
     if (!fs.existsSync(filePath)) {
-      console.error('❌ Audio file not found:', filePath);
       return res.status(500).json({ error: 'Audio file generation failed' });
     }
 
     const stats = fs.statSync(filePath);
     if (stats.size < 50) {
-      console.error('❌ Audio file too small:', stats.size);
-      return res.status(500).json({ error: 'Audio file is too small/corrupted' });
+      cleanup();
+      return res.status(500).json({ error: 'Audio file is too small or corrupted' });
     }
 
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
     res.setHeader('Cache-Control', 'public, max-age=3600');
-    
+
     const stream = fs.createReadStream(filePath);
-    
+
+    res.on('finish', () => {
+      setTimeout(cleanup, 250);
+    });
+
+    res.on('close', () => {
+      setTimeout(cleanup, 250);
+    });
+
     stream.on('error', (err) => {
-      console.error('❌ Stream error:', err.message);
+      cleanup();
       if (!res.headersSent) {
-        res.status(500).json({ error: 'Failed to read audio file' });
+        res.status(500).json({ error: 'Failed to read audio stream', message: err.message });
       }
     });
-    
+
     stream.pipe(res);
-
-    stream.on('end', () => {
-      // Clean up temp file after a short delay
-      setTimeout(() => {
-        fs.unlink(filePath, (err) => {
-          if (err && err.code !== 'ENOENT') {
-            console.error('Cleanup error:', err);
-          }
-        });
-      }, 100);
-    });
-
   } catch (err) {
-    console.error('❌ TTS Error:', err.message);
-    console.error('Stack:', err.stack);
-    // Return empty audio or error message instead of 500
-    res.status(500).json({ 
-      error: 'Text-to-speech unavailable. Python/edge-tts may not be installed on server.',
-      message: err.message 
+    cleanup();
+    res.status(500).json({
+      error: 'Text-to-speech unavailable',
+      message: err.message
     });
   }
 });
 
 module.exports = router;
+module.exports.stripEmoji = stripEmoji;

@@ -1,6 +1,7 @@
-// Fix for Node 18 - make crypto global
 const { webcrypto } = require('crypto');
-globalThis.crypto = webcrypto;
+if (!globalThis.crypto) {
+  globalThis.crypto = webcrypto;
+}
 
 const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
 const path = require('path');
@@ -11,16 +12,43 @@ const VOICES = {
   hi: 'hi-IN-MadhurNeural'
 };
 
+const tempDir = path.join(__dirname, '../temp');
+
+function cleanOldTempFiles() {
+  try {
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+      return;
+    }
+    const now = Date.now();
+    const files = fs.readdirSync(tempDir);
+    for (const file of files) {
+      if (file === '.gitkeep') continue;
+      const fullPath = path.join(tempDir, file);
+      try {
+        const stats = fs.statSync(fullPath);
+        if (now - stats.mtimeMs > 10 * 60 * 1000) {
+          fs.unlinkSync(fullPath);
+        }
+      } catch {
+        // ignore individual file stat/unlink errors
+      }
+    }
+  } catch {
+    // ignore readdir errors
+  }
+}
+
 const generateTTS = async (text, lang = 'en') => {
+  cleanOldTempFiles();
+
   const voiceId = VOICES[lang] || VOICES.en;
+  if (!fs.existsSync(tempDir)) {
+    fs.mkdirSync(tempDir, { recursive: true });
+  }
 
-  const tempDir = path.join(__dirname, '../temp');
-  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
-
-  const fileName = `tts_${Date.now()}.mp3`;
+  const fileName = `tts_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.mp3`;
   const filePath = path.join(tempDir, fileName);
-
-  console.log('🎤 Generating TTS:', { voice: voiceId, chars: text.length, lang });
 
   const tts = new MsEdgeTTS();
   await tts.setMetadata(voiceId, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
@@ -34,10 +62,7 @@ const generateTTS = async (text, lang = 'en') => {
     audioStream.on('error', reject);
   });
 
-  const stats = fs.statSync(filePath);
-  console.log('✅ Audio generated:', fileName, `(${stats.size} bytes)`);
-
   return { fileName, filePath };
 };
 
-module.exports = { generateTTS };
+module.exports = { generateTTS, cleanOldTempFiles, VOICES };
