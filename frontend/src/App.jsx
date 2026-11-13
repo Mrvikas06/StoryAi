@@ -4,6 +4,7 @@ import { generateStory as requestGenerateStory } from './api';
 import { useTTS } from './hooks/useTTS';
 import WordInput from './components/WordInput';
 import StoryDisplay from './components/StoryDisplay';
+import BackgroundDoodles from './components/BackgroundDoodles';
 
 export default function App() {
   const [words, setWords] = useState(['', '', '']);
@@ -109,6 +110,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <BackgroundDoodles />
       {showHistory && (
         <div
           className="drawer-overlay"
