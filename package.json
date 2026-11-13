@@ -14,18 +14,16 @@
     "prestart": "node scripts/health-check.js",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "test": "echo 'Tests to be implemented'"
+    "test": "npm --prefix backend test"
   },
   "engines": {
-    "node": "24.x"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "cors": "^2.8.5",
-    "dotenv": "^16.0.0",
-    "express": "^4.18.0",
-    "groq-sdk": "^0.3.0",
-    "mongoose": "^8.0.0",
-    "multer": "^2.1.1",
-    "node-fetch": "^2.7.0"
+    "dotenv": "^16.4.7",
+    "express": "^4.18.2",
+    "groq-sdk": "^1.1.2",
+    "mongoose": "^8.9.5"
   }
 }
