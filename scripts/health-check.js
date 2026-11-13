@@ -73,7 +73,8 @@ check('wrangler.toml exists', () =>
 );
 
 check('.env.example exists', () => 
-  fs.existsSync(path.join(__dirname, '../backend/.env.example'))
+  fs.existsSync(path.join(__dirname, '../backend/.env.example')) ||
+  fs.existsSync(path.join(__dirname, '../.env.example'))
 );
 
 // Check .gitignore
