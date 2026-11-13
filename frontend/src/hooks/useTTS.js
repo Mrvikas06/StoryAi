@@ -11,21 +11,33 @@ function stripEmoji(text) {
     .trim();
 }
 
+export function splitStorySentences(text, lang = 'en') {
+  if (!text) return [];
+  const delimiter = lang === 'hi' ? /[^।!?]+[।!?]+|[^।!?]+$/g : /[^.!?]+[.!?]+|[^.!?]+$/g;
+  const matches = text.match(delimiter);
+  if (!matches) return [text];
+  return matches.map((s) => s.trim()).filter(Boolean);
+}
+
 export function useTTS() {
   const [speaking, setSpeaking] = useState(false);
   const [speakLang, setSpeakLang] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [speechRate, setSpeechRate] = useState(0.9); // 0.85 for slow kid mode, 1.0 for normal
+  const [activeSentenceIndex, setActiveSentenceIndex] = useState(-1);
 
   const audioRef = useRef(null);
+  const cancelFlagRef = useRef(false);
 
   const stopAudio = useCallback(() => {
+    cancelFlagRef.current = true;
     if (audioRef.current) {
       try {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       } catch {
-        // ignore audio stop error
+        // ignore audio pause errors
       }
     }
     if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -38,142 +50,143 @@ export function useTTS() {
     setSpeaking(false);
     setSpeakLang('');
     setLoading(false);
+    setActiveSentenceIndex(-1);
   }, []);
 
-  const speakWithBrowser = useCallback((text, lang) => {
-    return new Promise((resolve, reject) => {
+  const speakWithBrowserSentenceBySentence = useCallback(
+    async (sentences, lang, startIndex = 0) => {
       if (typeof window === 'undefined' || !window.speechSynthesis) {
-        return reject(new Error('Browser speech synthesis is not supported'));
+        throw new Error('Browser speech is not available on this device');
       }
 
       const synth = window.speechSynthesis;
       const targetLang = lang === 'hi' ? 'hi-IN' : 'en-US';
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = targetLang;
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
 
-      let hasFallenBack = false;
-
-      const setVoice = () => {
+      const getBestVoice = () => {
         const voices = synth.getVoices() || [];
-        if (!voices.length) return false;
-        const exact = voices.find((v) => v.lang === targetLang);
-        const prefix = voices.find((v) => v.lang && v.lang.startsWith(targetLang.split('-')[0]));
-        utterance.voice = exact || prefix || voices[0] || null;
-        return true;
+        if (!voices.length) return null;
+        // Look for gentle, natural voices
+        const match =
+          voices.find((v) => v.lang === targetLang && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Zira'))) ||
+          voices.find((v) => v.lang === targetLang) ||
+          voices.find((v) => v.lang.startsWith(targetLang.split('-')[0])) ||
+          voices[0];
+        return match;
       };
 
-      const executeSpeak = () => {
-        utterance.onstart = () => {
-          setSpeaking(true);
-          setSpeakLang(lang);
-          setLoading(false);
-        };
+      cancelFlagRef.current = false;
+      setSpeaking(true);
+      setSpeakLang(lang);
+      setLoading(false);
 
-        utterance.onend = () => {
-          setSpeaking(false);
-          setSpeakLang('');
-          setLoading(false);
-          resolve();
-        };
+      for (let i = startIndex; i < sentences.length; i++) {
+        if (cancelFlagRef.current) break;
+        setActiveSentenceIndex(i);
 
-        utterance.onerror = (ev) => {
-          if (!hasFallenBack) {
-            hasFallenBack = true;
-            utterance.lang = 'en-US';
-            const voices = synth.getVoices() || [];
-            utterance.voice = voices[0] || null;
-            synth.cancel();
-            synth.speak(utterance);
+        const cleanSentence = stripEmoji(sentences[i]);
+        if (!cleanSentence) continue;
+
+        await new Promise((resolve) => {
+          const utterance = new SpeechSynthesisUtterance(cleanSentence);
+          utterance.lang = targetLang;
+          utterance.rate = speechRate;
+          utterance.pitch = 1.05; // Slightly warmer, friendlier pitch for children
+
+          const voice = getBestVoice();
+          if (voice) utterance.voice = voice;
+
+          utterance.onend = () => {
+            resolve();
+          };
+
+          utterance.onerror = () => {
+            resolve();
+          };
+
+          synth.speak(utterance);
+        });
+
+        // Small joyful breathing pause between sentences (200ms)
+        await new Promise((r) => setTimeout(r, 200));
+      }
+
+      if (!cancelFlagRef.current) {
+        stopAudio();
+      }
+    },
+    [speechRate, stopAudio]
+  );
+
+  const speak = useCallback(
+    async (text, lang = 'en', specificSentenceIndex = null) => {
+      if (speaking && speakLang === lang && specificSentenceIndex === null) {
+        stopAudio();
+        return;
+      }
+
+      stopAudio();
+      setLoading(true);
+      setSpeakLang(lang);
+      setError('');
+      cancelFlagRef.current = false;
+
+      const clean = stripEmoji(text);
+      if (!clean) {
+        setLoading(false);
+        return;
+      }
+
+      const sentences = splitStorySentences(text, lang);
+      const startIdx = specificSentenceIndex !== null ? specificSentenceIndex : 0;
+
+      // 1. Try server-side audio first if wanting full continuous narration
+      if (specificSentenceIndex === null) {
+        try {
+          const blob = await speakText(clean, lang);
+          if (blob && blob.size > 200) {
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            audioRef.current = audio;
+            audio.playbackRate = speechRate;
+
+            audio.onplay = () => {
+              setSpeaking(true);
+              setLoading(false);
+            };
+
+            audio.onended = () => {
+              stopAudio();
+              URL.revokeObjectURL(url);
+            };
+
+            audio.onerror = () => {
+              // Fallback to browser read-along engine if audio tag fails
+              URL.revokeObjectURL(url);
+              speakWithBrowserSentenceBySentence(sentences, lang, startIdx);
+            };
+
+            await audio.play();
             return;
           }
-          stopAudio();
-          reject(new Error(`Browser speech error: ${ev.error || 'unknown'}`));
-        };
-
-        try {
-          synth.cancel();
-          synth.speak(utterance);
-        } catch (err) {
-          stopAudio();
-          reject(err);
+        } catch {
+          // If server audio network is offline, seamlessly switch to browser speech synthesis
         }
-      };
-
-      if (setVoice()) {
-        executeSpeak();
-      } else {
-        const handleVoices = () => {
-          if (setVoice()) {
-            synth.removeEventListener('voiceschanged', handleVoices);
-            executeSpeak();
-          }
-        };
-        synth.addEventListener('voiceschanged', handleVoices);
-        setTimeout(() => {
-          synth.removeEventListener('voiceschanged', handleVoices);
-          setVoice();
-          executeSpeak();
-        }, 500);
-      }
-    });
-  }, [stopAudio]);
-
-  const speak = useCallback(async (text, lang = 'en') => {
-    if (speaking && speakLang === lang) {
-      stopAudio();
-      return;
-    }
-
-    stopAudio();
-    setLoading(true);
-    setSpeakLang(lang);
-    setError('');
-
-    const clean = stripEmoji(text);
-    if (!clean) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // 1. Attempt server-side neural TTS
-      const blob = await speakText(clean, lang);
-      if (!blob || blob.size < 50) {
-        throw new Error('Server audio payload unavailable');
       }
 
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audioRef.current = audio;
-
-      audio.onplay = () => {
-        setSpeaking(true);
-        setLoading(false);
-      };
-
-      audio.onended = () => {
-        stopAudio();
-        URL.revokeObjectURL(url);
-      };
-
-      audio.onerror = () => {
-        stopAudio();
-        URL.revokeObjectURL(url);
-      };
-
-      await audio.play();
-    } catch {
-      // 2. Fall back seamlessly to browser SpeechSynthesis
+      // 2. Interactive sentence-by-sentence read-along narration
       try {
-        await speakWithBrowser(clean, lang);
+        await speakWithBrowserSentenceBySentence(sentences, lang, startIdx);
       } catch (browserErr) {
-        setError(browserErr.message || 'Speech playback failed');
+        setError(browserErr.message || 'Speech playback failed. Please check sound settings.');
         stopAudio();
       }
-    }
-  }, [speakLang, speakWithBrowser, speaking, stopAudio]);
+    },
+    [speakLang, speakWithBrowserSentenceBySentence, speaking, speechRate, stopAudio]
+  );
+
+  const toggleRate = useCallback(() => {
+    setSpeechRate((prev) => (prev <= 0.9 ? 1.0 : 0.85));
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -186,8 +199,11 @@ export function useTTS() {
     speakLang,
     loading,
     error,
+    speechRate,
+    activeSentenceIndex,
     speak,
-    stopAudio
+    stopAudio,
+    toggleRate
   };
 }
 
