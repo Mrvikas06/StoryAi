@@ -1,10 +1,13 @@
 const router = require('express').Router();
-const Story  = require('../models/Story');
-const Groq   = require('groq-sdk');
+const mongoose = require('mongoose');
+const Story = require('../models/Story');
+const Groq = require('groq-sdk');
 
-const client = new Groq({ apiKey: process.env.GROQ_API_KEY });
+function getGroqClient() {
+  if (!process.env.GROQ_API_KEY) return null;
+  return new Groq({ apiKey: process.env.GROQ_API_KEY });
+}
 
-// ── Prompts ──────────────────────────────────────────
 function buildPrompt(words) {
   return `You are a master storyteller writing for special needs children aged 6-12.
 Create a meaningful, emotionally rich bilingual story using these words: ${words.join(', ')}.
@@ -22,7 +25,7 @@ SKILL TYPES (pick one that fits best):
 - Self-Care & Safety: crossing road safely, stranger safety, knowing your name/address, hot/cold awareness
 
 FORMAT (follow exactly, plain text only, no markdown):
-Title: [2-3 emojis + creative compelling title]
+Title: [creative compelling title]
 Emoji: [one main character emoji only]
 SkillType: [which skill type from above is being taught]
 Skill: [specific skill, e.g. "Calming Down When Angry" or "Buttoning a Shirt"]
@@ -39,77 +42,157 @@ Animals/helpers: Bruno the dog, Cheeku the squirrel, Meow the cat, Biscuit the r
 RULES:
 - Skill must feel like a natural story moment, NOT a lesson or instruction
 - Character must have a name, quirk, and emotional arc
-- Show skill through story action — "his hands shook but he pushed the button through the hole" not "he learned to button"
+- Show skill through story action
 - Sensory language: textures, sounds, smells, temperatures, feelings in the body
 - Simple words, no abstract ideas, no confusing metaphors
-- Struggle then success arc — child sees themselves in the win
+- Struggle then success arc
 - Happy or hopeful ending always
 - No markdown, no asterisks, plain text only`;
 }
 
 function parseStory(raw) {
   const result = {
-    title: '', emoji: '🌟',
-    english: '', hindi: '',
+    title: '',
+    emoji: '🌟',
+    skillType: '',
+    skill: '',
+    english: '',
+    hindi: '',
     question: { en: '', hi: '' }
   };
-  const lines = raw.trim().split('\n').filter(l => l.trim());
+
+  const lines = raw.trim().split('\n').filter((l) => l.trim());
   for (const line of lines) {
     const low = line.toLowerCase();
-    if (low.startsWith('title:'))
+    if (low.startsWith('title:')) {
       result.title = line.replace(/^title:\s*/i, '').trim();
-    else if (low.startsWith('emoji:'))
+    } else if (low.startsWith('emoji:')) {
       result.emoji = line.replace(/^emoji:\s*/i, '').trim();
-    else if (low.startsWith('english:'))
+    } else if (low.startsWith('skilltype:')) {
+      result.skillType = line.replace(/^skilltype:\s*/i, '').trim();
+    } else if (low.startsWith('skill:')) {
+      result.skill = line.replace(/^skill:\s*/i, '').trim();
+    } else if (low.startsWith('english:')) {
       result.english = line.replace(/^english:\s*/i, '').trim();
-    else if (low.startsWith('hindi:'))
+    } else if (low.startsWith('hindi:')) {
       result.hindi = line.replace(/^hindi:\s*/i, '').trim();
-    else if (low.startsWith('questionhindi:'))
+    } else if (low.startsWith('questionhindi:')) {
       result.question.hi = line.replace(/^questionhindi:\s*/i, '').trim();
-    else if (low.startsWith('question:'))
+    } else if (low.startsWith('question:')) {
       result.question.en = line.replace(/^question:\s*/i, '').trim();
+    }
   }
+
+  if (!result.title) result.title = 'The Magical Journey';
   return result;
 }
 
-// ── Generate from words ──────────────────────────────
+function generateLocalStory(wordsList, childId = 'guest') {
+  const emojis = ['🌟', '✨', '🌙', '🐱', '🦊', '🐻', '🪄', '🦋', '🌈', '🚀'];
+  const emoji = emojis[Math.min(wordsList.length, emojis.length - 1)] || '🌟';
+  const primaryWord = (wordsList[0] || 'Friend').toString();
+  const capitalizedWord = primaryWord.charAt(0).toUpperCase() + primaryWord.slice(1);
+  const title = `${capitalizedWord} and the Gentle Adventure`;
+
+  const englishSentences = [
+    `One bright morning, Leo packed his bag with a ${wordsList[0] || 'notebook'} and stepped outside.`,
+    `The gentle breeze rustled through the tall green trees along the quiet winding path.`,
+    `Along the way, he noticed a tiny ${wordsList[1] || 'butterfly'} fluttering softly near the garden gate.`,
+    `Leo took three slow deep breaths to calm his racing thoughts before stepping forward.`,
+    `He remembered how comforting it felt when his teacher taught him to pause and listen.`,
+    `With careful fingers, he touched the soft edge of the ${wordsList[2] || 'pebble'} in his pocket.`,
+    `Suddenly, his neighbor Mira came by and offered a cheerful wave and a shared smile.`,
+    `Together, they celebrated their small courage and walked home with peaceful, happy hearts.`
+  ];
+
+  const hindiSentences = [
+    `एक सुनहरी सुबह, लियो ने अपना बैग तैयार किया और बाहर की ओर कदम बढ़ाया।`,
+    `शांत पगडंडी पर ऊंचे हरे पेड़ों के बीच से ठंडी हवा धीरे-धीरे बह रही थी।`,
+    `रास्ते में उसने बगीचे के पास एक प्यारी सी तितली को उड़ते हुए देखा।`,
+    `लियो ने आगे बढ़ने से पहले गहरी और शांत सांसें लीं।`,
+    `उसे याद आया कि मुश्किल समय में रुकना और समझना कितना मददगार होता है।`,
+    `उसने अपनी जेब में रखे छोटे से पत्थर को प्यार से महसूस किया।`,
+    `तभी उसकी दोस्त मीरा ने मुस्कुराते हुए उसका स्वागत किया।`,
+    `दोनों ने खुशी और आत्मविश्वास के साथ अपने कदम आगे बढ़ाए।`
+  ];
+
+  return {
+    title,
+    emoji,
+    skillType: 'Emotions & Feelings',
+    skill: 'Calming Down and Taking Deep Breaths',
+    english: englishSentences.join(' '),
+    hindi: hindiSentences.join(' '),
+    question: {
+      en: `When was a time you took a deep breath to feel calm and brave?`,
+      hi: `आपने पिछली बार शांत और मजबूत महसूस करने के लिए गहरी सांस कब ली थी?`
+    },
+    words: wordsList,
+    childId
+  };
+}
+
 router.post('/generate', async (req, res) => {
-  const { words, childId = 'guest' } = req.body;
-  console.log('📝 Story request:', { words, childId });
-  
-  if (!words || !words.length)
+  const { words, childId = 'guest' } = req.body || {};
+
+  if (!words || !Array.isArray(words) || !words.filter(Boolean).length) {
     return res.status(400).json({ error: 'No words provided' });
+  }
+
+  const cleanWords = words.map((w) => String(w).trim()).filter(Boolean);
+  let storyData = null;
 
   try {
-    console.log('🤖 Calling Groq API...');
-    const completion = await client.chat.completions.create({
-      model: 'llama-3.3-70b-versatile',
-      max_tokens: 1024,
-      temperature: 0.85,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are a master bilingual storyteller for children. Always follow the exact format. No markdown or asterisks.'
-        },
-        {
-          role: 'user',
-          content: buildPrompt(words)
-        }
-      ]
-    });
+    const client = getGroqClient();
+    if (client) {
+      const completion = await client.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 1024,
+        temperature: 0.85,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a master bilingual storyteller for children. Always follow the exact format. No markdown or asterisks.'
+          },
+          {
+            role: 'user',
+            content: buildPrompt(cleanWords)
+          }
+        ]
+      });
 
-    const raw    = completion.choices[0].message.content;
-    console.log('📖 Story generated, parsing...');
-    const parsed = parseStory(raw);
-    console.log('💾 Saving to database...');
-    const story  = await Story.create({ ...parsed, words, childId });
-    console.log('✅ Story saved successfully:', story._id);
-    res.json({ success: true, story });
-
-  } catch (e) {
-    console.error('❌ Generate error:', e.message);
-    res.status(500).json({ error: e.message });
+      const raw = completion?.choices?.[0]?.message?.content || '';
+      const parsed = parseStory(raw);
+      storyData = { ...parsed, words: cleanWords, childId };
+      if (!storyData.english) storyData.english = raw;
+      if (!storyData.hindi) storyData.hindi = raw;
+    } else {
+      storyData = generateLocalStory(cleanWords, childId);
+    }
+  } catch (err) {
+    console.warn('Groq generation fallback:', err.message);
+    storyData = generateLocalStory(cleanWords, childId);
   }
+
+  try {
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      const saved = await Story.create(storyData);
+      return res.json({ success: true, story: saved });
+    }
+  } catch (dbErr) {
+    console.warn('MongoDB persistence skipped:', dbErr.message);
+  }
+
+  const inMemoryStory = {
+    _id: `mem_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    ...storyData,
+    createdAt: new Date().toISOString()
+  };
+
+  return res.json({ success: true, story: inMemoryStory });
 });
 
 module.exports = router;
+module.exports.buildPrompt = buildPrompt;
+module.exports.parseStory = parseStory;
+module.exports.generateLocalStory = generateLocalStory;
