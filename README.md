@@ -1,6 +1,6 @@
 # StoryAI
 
-StoryAI is an accessible bilingual storytelling platform designed for children, early readers, and special education learners. The application accepts prompt words through typing or microphone speech recognition, synthesizes structured educational narratives via Groq LLM inference, and formats the output side-by-side in English and Hindi. Integrated speech synthesis delivers clear neural audio narration and interactive sentence-by-sentence read-along highlighting, guiding children through pronunciation, sentence structure, and comprehension.
+StoryAI is an assistive bilingual storytelling and literacy platform tailored for early readers, neurodivergent children, and learners in special education. The application accepts prompt words via text, single-tap theme packs, or microphone speech recognition, synthesizes structured educational narratives via Groq LLM inference, and formats the output side-by-side in English and Hindi. Integrated speech synthesis delivers natural storytelling audio synchronized with sentence-by-sentence spotlight highlighting to support comprehension, pronunciation, and reading pacing.
 
 ![StoryAI Application Interface](docs/screenshots/app-overview.png)
 
@@ -9,416 +9,185 @@ StoryAI is an accessible bilingual storytelling platform designed for children, 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Support for Children with Special Needs](#support-for-children-with-special-needs)
+- [Interface Proof](#interface-proof)
 - [Key Features](#key-features)
 - [Technology Stack](#technology-stack)
-- [System Architecture](#system-architecture)
-- [Directory Layout](#directory-layout)
-- [Prerequisites](#prerequisites)
 - [Installation and Setup](#installation-and-setup)
 - [Configuration](#configuration)
 - [Running the Application](#running-the-application)
 - [API Reference](#api-reference)
-- [Testing and Quality Assurance](#testing-and-quality-assurance)
-- [Deployment Options](#deployment-options)
-- [Screenshots](#screenshots)
+- [Testing and Verification](#testing-and-verification)
+- [Deployment](#deployment)
 - [License](#license)
 
 ---
 
 ## Overview
 
-StoryAI combines generative language models with assistive speech technology to create personalized, encouraging reading material. When supplied with up to three prompt words, the system constructs a narrative centered around essential developmental skills such as emotional regulation, cooperation, task focus, or seeking help.
+StoryAI combines generative language models with assistive multimodal speech technology to generate personalized, accessible narratives. Supplying up to three prompt words generates a complete story centered on essential developmental and emotional regulation skills (e.g., calming down, asking for help, patience, task focus).
 
-Each generated story features:
-1. Title, character emoji identifier, and developmental skill classification.
-2. English narrative paragraph structured with accessible vocabulary and sensory descriptions.
-3. Natural, conversational Hindi translation aligned with young comprehension.
-4. Interactive reflection question linking the narrative theme to personal experience.
-5. Audio narration engine with sentence-by-sentence visual read-along tracking and adjustable playback speed.
+Each story contains:
+1. Title, character identifier, and developmental skill classification.
+2. English narrative paragraph structured with sensory details and age-appropriate vocabulary.
+3. Natural, conversational Hindi translation aligned for bilingual comprehension.
+4. Interactive reflection question linking the narrative theme to real-world social-emotional situations.
+5. Synchronized sentence-level speech narration with active spotlight highlighting.
+
+---
+
+## Support for Children with Special Needs
+
+StoryAI was architected specifically to overcome common reading and developmental barriers faced by neurodivergent children and special education students:
+
+- **Visual Pacing and Attention (ADHD & Executive Functioning)**: Children with attention challenges often feel overwhelmed by dense blocks of text. The live yellow spotlight highlights only one sentence at a time as it is spoken, reducing visual crowding and guiding sustained focus across the page.
+- **Multisensory Auditory Reinforcement (Dyslexia & Reading Delays)**: Presenting synchronized auditory speech alongside highlighted text connects phonemes with graphemes in real time. Children can also tap any individual sentence to replay its pronunciation on demand without restarting the story.
+- **Social-Emotional Scaffolding (Autism Spectrum / ASD)**: Children on the autism spectrum benefit from explicit social storytelling. Every generated narrative illustrates a practical coping strategy (such as taking deep breaths when frustrated or asking a friend for assistance) followed by a guided "Think & Share" reflection prompt.
+- **Low-Frustration Multimodal Input (Motor & Speech Delay)**: Young learners who struggle with physical keyboard typing can select pre-built adventure theme packs (e.g., Playful Animals, Space Quest) or dictate words via browser speech recognition.
+- **Sensory-Friendly Voice Cadence**: The audio engine offers selectable pacing tones (Warm Storyteller at 0.90x, Calm Bedtime at 0.84x, and Lively Explorer at 0.98x) with gentle transitions and a calm color palette to prevent sensory overload.
+- **Bilingual Language Development**: Provides authentic British English (`en-GB`) and native Indian Hindi (`hi-IN`) pronunciation, supporting dual-language households and children receiving bilingual speech therapy.
+
+---
+
+## Interface Proof
+
+### Main Application Dashboard
+The primary interface provides high-contrast, rounded inputs, theme adventure packs, and storyteller voice selections designed for young learners.
+
+![StoryAI Main Dashboard](docs/screenshots/app-overview.png)
+
+### Synchronized Read-Along Sentence Highlighting
+During audio playback, the system dynamically shifts the warm yellow highlight from sentence to sentence in lockstep with the voice, maintaining exact tracking across both English and Devanagari Hindi text.
+
+![StoryAI Read-Along Sentence Highlighting](docs/screenshots/story-read-along.png)
 
 ---
 
 ## Key Features
 
-- **Child-Centered User Experience**: Warm, tactile storybook design utilizing high-legibility rounded typography (Nunito, Quicksand) with high contrast and generous line spacing.
-- **Bilingual Story Generation**: Concurrent generation of English and Hindi narratives mapped to specific life skills.
-- **Interactive Sentence Read-Along**: Visual spotlight tracking highlights each sentence as it is spoken, assisting reading pacing and comprehension.
-- **Sentence-Level Audio Interaction**: Children can tap any individual sentence in English or Hindi to listen to its pronunciation on demand.
-- **Adjustable Speech Rate**: Dual-mode playback offering gentle learning pacing (0.85x) and standard narrative pacing (1.0x).
-- **Multi-Tier Audio Architecture**: Primary MP3 audio stream synthesized via Google Speech endpoint with zero-latency browser Web Speech API fallback.
-- **Multimodal Prompting**: Accepts typed entries, quick adventure theme packs, or spoken voice input via browser SpeechRecognition.
-- **Local Bookshelf Drawer**: Stores generated stories in local storage with instant recall and deletion controls.
-- **Zero-Dependency Fallback Engine**: Deterministic narrative generation ensures stories generate even without internet or API keys.
+- **Side-by-Side Bilingual Stories**: Concurrent English and Hindi narrative generation mapped to social-emotional skills.
+- **Sentence-Level Audio Sync**: Custom sentence queue advances read-along highlight precisely with audio completion.
+- **Tap-to-Hear Sentences**: Interactive sentence spans allow learners to practice reading difficult clauses independently.
+- **Authentic Voice Accents**: British English storytelling accent and native Indian Hindi neural audio streaming.
+- **Storyteller Tone Controls**: Adjustable playback rates (0.84x to 0.98x) suited for bedtime reading or active classroom practice.
+- **Local Storage Bookshelf**: Built-in drawer stores up to 20 past stories locally with instant retrieval and deletion.
+- **Deterministic Offline Fallback**: Generates structured bilingual stories even when offline or without external API keys.
 
 ---
 
 ## Technology Stack
 
 ### Frontend
-- **Framework**: React 19
-- **Build Tool**: Vite 8
-- **Typography**: Nunito, Quicksand
-- **Styling**: Vanilla CSS with strict 4px spacing scale and responsive storybook cards
-- **Audio & Voice APIs**: Web Speech API (`SpeechRecognition`, `SpeechSynthesis`), HTMLAudioElement, Blob API
+- **Framework**: React 19 + Vite 8
+- **Typography**: Nunito, Quicksand (High-legibility rounded fonts)
+- **Styling**: Vanilla CSS (4px grid, tactile cards, responsive split layouts)
+- **Speech APIs**: Web Speech API (`SpeechRecognition`, `SpeechSynthesis`), HTMLAudioElement, Blob streaming
 - **HTTP Client**: Axios
 
-### Backend & Serverless
-- **Runtime**: Node.js (v18.0.0 or higher)
-- **Web Framework**: Express 5 / Express 4
+### Backend
+- **Runtime**: Node.js (v18+) + Express
 - **AI Inference**: Groq SDK (`llama-3.3-70b-versatile`)
-- **Speech Synthesis Engine**: Multi-tier audio streamer with automatic clause chunking
-- **Database (Optional)**: MongoDB Atlas via Mongoose
-- **Deployment Handlers**: Vercel Serverless Functions, Render Web Service, Cloudflare Pages
-
----
-
-## System Architecture
-
-```
-+-------------------------------------------------------------------+
-|                        Client Application                         |
-|  - React 19 + Vite Frontend                                       |
-|  - Sentence Read-Along Highlighter & Adjustable Speed (0.85x/1.0x)|
-|  - SpeechRecognition (Voice Input) & SpeechSynthesis Fallback     |
-|  - Local Storage Story Library                                    |
-+---------------------------------+---------------------------------+
-                                  |
-               HTTP REST Requests | (JSON / Audio Blob)
-                                  v
-+-------------------------------------------------------------------+
-|                     Backend Server / API Gateway                  |
-|  - Express Server / Vercel Serverless Functions                   |
-|  - Dynamic CORS & Pre-Deployment Verification                     |
-+-----------------+-------------------------------+-----------------+
-                  |                               |
-                  v                               v
-    +---------------------------+   +---------------------------+
-    |   Groq LLM Inference      |   |   Audio Synthesis Stream  |
-    |  - llama-3.3-70b          |   |  - Automatic Clause Split |
-    |  - Structured Prompts     |   |  - Google Speech Stream   |
-    |  - Local Fallback Engine  |   |  - Automated Temp Cleanup |
-    +-------------+-------------+   +---------------------------+
-                  |
-                  v (Optional)
-    +---------------------------+
-    |      MongoDB Atlas        |
-    |  - Story Persistence      |
-    |  - In-Memory Fallback     |
-    +---------------------------+
-```
-
----
-
-## Directory Layout
-
-```
-StoryAi/
-├── api/                         # Vercel serverless function entrypoints
-│   ├── health.js                # Health check endpoint
-│   ├── story/
-│   │   └── generate.js          # Serverless story generation handler
-│   └── tts/
-│       └── speak.js             # Audio fallback negotiation handler
-├── backend/                     # Dedicated Express backend service
-│   ├── models/
-│   │   └── Story.js             # Mongoose schema and fallback memory store
-│   ├── routes/
-│   │   ├── stories.js           # Story history retrieval and deletion
-│   │   ├── story.js             # Groq prompting, parsing, and fallback engine
-│   │   └── tts.js               # Audio streaming and file cleanup
-│   ├── temp/                    # Temporary audio storage directory
-│   ├── test/
-│   │   └── backend.test.js      # Automated unit and integration test suite
-│   ├── utils/
-│   │   └── ttsService.js        # Audio chunking, synthesis, and garbage collection
-│   ├── package.json             # Backend dependencies and scripts
-│   └── server.js                # Standalone backend server entrypoint
-├── docs/                        # Project documentation and screenshots
-│   └── screenshots/             # Interface and read-along proof images
-├── frontend/                    # React single-page application
-│   ├── public/                  # Static assets and redirect rules
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── StoryDisplay.jsx # Interactive storybook with sentence highlighter
-│   │   │   └── WordInput.jsx    # Kid-friendly prompt builder and voice input
-│   │   ├── hooks/
-│   │   │   ├── useTTS.js        # Read-along sentence tracking and audio engine
-│   │   │   └── useVoiceInput.js # Microphone speech recognition hook
-│   │   ├── api.js               # Centralized Axios client interface
-│   │   ├── App.css              # Kid-friendly storybook styling
-│   │   ├── index.css            # Global Nunito/Quicksand typography setup
-│   │   └── main.jsx             # React DOM entrypoint
-│   ├── package.json             # Frontend dependencies and scripts
-│   └── vite.config.js           # Vite development and production configuration
-├── scripts/
-│   ├── health-check.js          # Pre-deployment environment verification
-│   └── start-server.js          # Combined production orchestrator
-├── package.json                 # Root dependencies and mono-repo scripts
-├── render.yaml                  # Render.io blueprint deployment configuration
-├── server.js                    # Unified production server (API + Static SPA)
-├── vercel.json                  # Vercel routing and build configuration
-└── wrangler.toml                # Cloudflare Pages / Workers deployment manifest
-```
-
----
-
-## Prerequisites
-
-- **Node.js**: Version 18.0.0 or higher
-- **npm**: Version 9.0.0 or higher
-- **Groq API Key (Optional)**: Required for live LLM generation; the built-in deterministic generator activates automatically if omitted.
-- **MongoDB URI (Optional)**: Required for remote database persistence; in-memory storage activates automatically if omitted.
+- **Speech Streaming**: Clause-chunked multi-tier audio streamer (`tl=en-gb` and `tl=hi`)
+- **Database (Optional)**: MongoDB Atlas with automated in-memory fallback
+- **Test Framework**: Node.js Native Test Runner (`node:test`, `node:assert`)
 
 ---
 
 ## Installation and Setup
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Mrvikas06/StoryAi.git
-   cd StoryAi
-   ```
+### 1. Clone the repository
+```bash
+git clone https://github.com/Mrvikas06/StoryAi.git
+cd StoryAi
+```
 
-2. **Install root and service dependencies**:
-   ```bash
-   npm install
-   cd backend && npm install
-   cd ../frontend && npm install
-   cd ..
-   ```
+### 2. Install dependencies
+```bash
+npm install
+npm install --prefix backend
+npm install --prefix frontend
+```
 
-3. **Verify the environment**:
-   ```bash
-   npm run health-check
-   ```
+### 3. Verify health
+```bash
+npm run health-check
+```
 
 ---
 
 ## Configuration
 
-Copy `.env.example` to create your local environment file:
+Create a `.env` file in the root or `backend/` directory:
 
 ```bash
 cp .env.example .env
 ```
 
-| Environment Variable | Description | Required | Default |
-|:---------------------|:------------|:---------|:--------|
-| `PORT` | HTTP port for the Express server | No | `4000` |
-| `NODE_ENV` | Runtime mode (`development` or `production`) | No | `development` |
-| `GROQ_API_KEY` | API key from Groq Console | No | Built-in fallback |
-| `MONGODB_URI` | Connection URI for MongoDB Atlas | No | In-memory cache |
-| `ALLOWED_ORIGINS` | Comma-delimited list of custom CORS origins | No | `localhost:3000, 5173` |
-| `RENDER_EXTERNAL_URL`| Deployed Render service hostname | No | `http://localhost:3000` |
-| `VITE_API_BASE_URL` | Base API URL consumed by the frontend | No | `/api` |
+| Variable | Description | Required | Default |
+|:---|:---|:---|:---|
+| `PORT` | Express server port | No | `4000` |
+| `NODE_ENV` | Environment mode (`development` / `production`) | No | `development` |
+| `GROQ_API_KEY` | Groq Console API Key | No | Built-in fallback |
+| `MONGODB_URI` | MongoDB Atlas URI | No | In-memory store |
+| `ALLOWED_ORIGINS` | Permitted CORS origins | No | `localhost:3000, 5173` |
+| `VITE_API_BASE_URL` | API base URL consumed by frontend | No | `/api` |
 
 ---
 
 ## Running the Application
 
-### Development Mode (Concurrent Services)
-
-Start the backend API server on port 4000:
+### Development Mode (Concurrent)
 ```bash
+# Terminal 1: Backend API (port 4000)
 npm run dev:backend
-```
 
-In a separate terminal, launch the Vite frontend server on port 5173:
-```bash
+# Terminal 2: Frontend client (port 5173)
 npm run dev:frontend
 ```
-
-Open your browser at `http://localhost:5173`.
+Open `http://localhost:5173` in your browser.
 
 ### Unified Production Mode
-
-Build the frontend bundle and serve both the API and client from a single Node.js process:
 ```bash
 npm run build
 npm start
 ```
-
-Access the unified service at `http://localhost:4000`.
+Access the application at `http://localhost:4000`.
 
 ---
 
 ## API Reference
 
-### 1. Health Status
-- **Method**: `GET`
-- **Endpoint**: `/api/health`
-- **Response**:
-  ```json
-  {
-    "status": "ok",
-    "message": "Server is running",
-    "timestamp": "2026-11-13T17:45:00.000Z"
-  }
-  ```
-
-### 2. Generate Story
-- **Method**: `POST`
-- **Endpoint**: `/api/story/generate`
-- **Headers**: `Content-Type: application/json`
-- **Body**:
-  ```json
-  {
-    "words": ["puppy", "rainbow", "picnic"],
-    "childId": "guest"
-  }
-  ```
-- **Response**:
-  ```json
-  {
-    "success": true,
-    "story": {
-      "_id": "story_1731519900_abcde",
-      "title": "Puppy and the Gentle Adventure",
-      "emoji": "🌟",
-      "skillType": "Emotions & Feelings",
-      "skill": "Calming Down and Taking Deep Breaths",
-      "english": "One bright morning, Leo packed his bag with a puppy and stepped outside...",
-      "hindi": "एक सुनहरी सुबह, लियो ने अपना बैग तैयार किया और बाहर की ओर कदम बढ़ाया...",
-      "question": {
-        "en": "When was a time you took a deep breath to feel calm and brave?",
-        "hi": "आपने पिछली बार शांत और मजबूत महसूस करने के लिए गहरी सांस कब ली थी?"
-      },
-      "words": ["puppy", "rainbow", "picnic"],
-      "childId": "guest",
-      "createdAt": "2026-11-13T17:45:00.000Z"
-    }
-  }
-  ```
-
-### 3. Synthesize Speech
-- **Method**: `POST`
-- **Endpoint**: `/api/tts/speak`
-- **Headers**: `Content-Type: application/json`
-- **Body**:
-  ```json
-  {
-    "text": "Welcome to story time, little explorer!",
-    "lang": "en"
-  }
-  ```
-- **Response**: Streamed binary `audio/mpeg` payload.
-
-### 4. Fetch Saved Stories
-- **Method**: `GET`
-- **Endpoint**: `/api/stories/:childId`
-- **Response**: Array of persisted story objects.
-
-### 5. Delete Story
-- **Method**: `DELETE`
-- **Endpoint**: `/api/stories/:id`
-- **Response**:
-  ```json
-  {
-    "success": true
-  }
-  ```
+| Endpoint | Method | Payload / Params | Description |
+|:---|:---|:---|:---|
+| `/api/health` | `GET` | None | Returns server health and timestamp |
+| `/api/story/generate` | `POST` | `{ words: string[], childId?: string }` | Generates structured bilingual story |
+| `/api/tts/speak` | `POST` | `{ text: string, lang: 'en' \| 'hi' }` | Streams binary `audio/mpeg` speech buffer |
+| `/api/stories/:childId` | `GET` | `childId` in URL | Fetches persisted story collection |
+| `/api/stories/:id` | `DELETE` | Story `_id` in URL | Deletes specified story record |
 
 ---
 
-## Testing and Quality Assurance
+## Testing and Verification
 
-Execute the automated test suite covering prompt construction, structured parsing, fallback behavior, audio clause splitting, and live streaming endpoints:
-
+Run the automated backend test suite:
 ```bash
 npm test
 ```
 
-### Verified Test Suite Results:
-- Prompt builder validation with multi-word inputs
-- Structured plain-text parsing into English, Hindi, and question fields
-- Fallback narrative generation under missing API credentials
-- Emoji stripping for audio streaming compatibility
-- Text clause chunking for long narrations
-- Binary MP3 synthesis verification
-- Temporary file management and cleanup
-- Route responses for health checks, story generation, and speech synthesis
+### Coverage Scope:
+- Multi-word prompt construction and schema formatting
+- Fallback bilingual narrative generation without API credentials
+- Emoji sanitization for text-to-speech audio streams
+- Clause chunking for long narrations
+- Live endpoint responses (`/api/health`, `/api/story/generate`, `/api/tts/speak`)
 
 ---
 
-## Deployment Options
+## Deployment
 
-### Option 1: Render.io Web Service
-The repository contains a pre-configured `render.yaml` specification for single-process hosting.
-1. Connect the GitHub repository in the Render dashboard.
-2. Select **Web Service** and choose the `render.yaml` blueprint or set:
-   - Build Command: `npm install && npm run build`
-   - Start Command: `npm start`
-3. Add the optional environment variables (`GROQ_API_KEY`, `MONGODB_URI`).
-
-### Option 2: Vercel (Frontend & Serverless Functions)
-The repository contains `vercel.json` configured for zero-configuration deployment.
-1. Import the repository into Vercel.
-2. Build command: `npm install --prefix frontend && npm run build --prefix frontend`.
-3. Output directory: `frontend/dist`.
-4. Serverless endpoints are automatically routed from the `/api` directory.
-
-### Option 3: Cloudflare Pages
-1. In Cloudflare Pages, connect the repository.
-2. Build command: `cd frontend && npm install && npm run build`.
-3. Build output directory: `frontend/dist`.
-4. Set `VITE_API_BASE_URL` to point to your deployed backend API URL.
-
----
-
-## Screenshots
-
-### Main Application Interface
-
-![StoryAI Application Interface](docs/screenshots/app-overview.png)
-
-*Figure 1: Full user interface displaying magic word prompt creation, theme adventure packs, and the story viewer.*
-
-### Synchronized Read-Along Sentence Highlighting
-
-![StoryAI Read-Along Sentence Highlighting](docs/screenshots/story-read-along.png)
-
-*Figure 2: Live read-along sentence tracking with synchronized yellow spotlight highlight during Hindi narration.*
-
-The interface highlights the active sentence with a warm yellow spotlight and synchronized speech synthesis progression, allowing young readers to follow word-by-word and sentence-by-sentence in both English and Hindi.
-
-### Application Interface Layout
-
-```
-+-------------------------------------------------------------------------------+
-|  StoryAI  [Magic Storybook]                             [My Stories (3)]      |
-+-------------------------------------------------------------------------------+
-|                                                                               |
-|  +-------------------------------------------------------------------------+  |
-|  | What is your story about?                                               |  |
-|  | Type or speak up to 3 fun words!                         [Speak Words]  |  |
-|  |                                                                         |  |
-|  | [ Word 1: Puppy      ]  [ Word 2: Rainbow     ]  [ Word 3: Picnic     ] |  |
-|  |                                                                         |  |
-|  | Quick Adventure Packs: [Playful Animals] [Space Quest] [Magic Kingdom]  |  |
-|  |                                                                         |  |
-|  |                                                [Create My Storybook!]   |  |
-|  +-------------------------------------------------------------------------+  |
-|                                                                               |
-|  +-------------------------------------------------------------------------+  |
-|  | (*) Puppy and the Gentle Adventure       [Gentle Speed] [Both] [English]|  |
-|  | [* Emotions & Feelings] [Calming Down]                     [New Story]  |  |
-|  |-------------------------------------------------------------------------|  |
-|  | English Story            [Listen] | Hindi Story                [Listen] |  |
-|  |                                   |                                     |  |
-|  | [One bright morning, Leo packed]  | [एक सुनहरी सुबह, लियो ने अपना बैग]  |  |
-|  | [his bag with a puppy and stepped]| [तैयार किया और बाहर की ओर बढ़ा।]    |  |
-|  |                                   |                                     |  |
-|  | (Active sentence glows in yellow as the story is read aloud)            |  |
-|  |-------------------------------------------------------------------------|  |
-|  | THINK & SHARE                                                           |  |
-|  | When was a time you took a deep breath to feel calm and brave?          |  |
-|  | आपने पिछली बार शांत और मजबूत महसूस करने के लिए गहरी सांस कब ली थी?      |  |
-|  +-------------------------------------------------------------------------+  |
-|                                                                               |
-+-------------------------------------------------------------------------------+
-|  StoryAI — Joyful bilingual stories and read-along narration for young readers|
-+-------------------------------------------------------------------------------+
-```
+- **Render**: Blueprint ready via `render.yaml` (`npm install && npm run build` -> `npm start`).
+- **Vercel**: Serverless routing configured via `vercel.json` pointing `/api` endpoints and `frontend/dist`.
+- **Cloudflare Pages**: Manifest configured in `wrangler.toml` for static client hosting.
 
 ---
 
